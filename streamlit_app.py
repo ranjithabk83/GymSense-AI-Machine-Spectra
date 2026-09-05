@@ -14,6 +14,18 @@ import streamlit as st
 from feature_extraction import extract_features_from_records, get_feature_names
 
 
+# Streamlit treats lines beginning with four spaces as Markdown code blocks.
+# Dedent every unsafe HTML block before rendering so HTML/SVG is displayed,
+# not printed as raw <div> / <svg> text.
+from textwrap import dedent
+
+
+def html_markdown(body, *args, **kwargs):
+    if kwargs.get("unsafe_allow_html"):
+        body = dedent(str(body)).strip()
+    return st.markdown(body, *args, **kwargs)
+
+
 # ============================================================
 # PAGE
 # ============================================================
@@ -82,7 +94,7 @@ ACTIVITY_EMOJI = {
 # GLOBAL UI
 # ============================================================
 
-st.markdown(
+html_markdown(
     """
 <style>
 html, body, [class*="css"] {
@@ -1169,7 +1181,7 @@ def avatar_svg(gender: str, activity: str = "READY") -> str:
 
 
 def show_avatar_choice(gender: str):
-    st.markdown(
+    html_markdown(
         f"""
 <div class="avatar-choice">
     {avatar_svg(gender, "REST")}
@@ -1180,7 +1192,7 @@ def show_avatar_choice(gender: str):
 
 
 def show_ready_stage():
-    st.markdown(
+    html_markdown(
         """
 <div class="ready-stage">
     <div class="ready-ring">
@@ -1201,7 +1213,7 @@ def show_live_stage():
         show_ready_stage()
         return
 
-    st.markdown(
+    html_markdown(
         f"""
 <div class="live-stage">
     <div class="live-pill">
@@ -2146,7 +2158,7 @@ header_left, header_right = st.columns(
 )
 
 with header_left:
-    st.markdown(
+    html_markdown(
         f"""
 <div class="gs-brand">
     GymSense <span>AI</span>
@@ -2190,7 +2202,7 @@ with header_right:
 
 if st.session_state.avatar is None:
 
-    st.markdown(
+    html_markdown(
         """
 <div class="gs-card">
     <div class="gs-kicker">
@@ -2245,7 +2257,7 @@ if st.session_state.avatar is None:
 # LIVE WORKOUT
 # ============================================================
 
-st.markdown(
+html_markdown(
     '<div class="gs-kicker">LIVE WORKOUT</div>',
     unsafe_allow_html=True,
 )
@@ -2255,7 +2267,7 @@ show_live_stage()
 activity = st.session_state.current_activity
 confidence = st.session_state.current_confidence
 
-st.markdown(
+html_markdown(
     f"""
 <div class="live-activity-name">
     {ACTIVITY_EMOJI.get(activity, "🔥")}
@@ -2266,7 +2278,7 @@ st.markdown(
 )
 
 if confidence is not None:
-    st.markdown(
+    html_markdown(
         f"""
 <div class="live-confidence">
     Confidence: {confidence * 100:.1f}%
@@ -2275,7 +2287,7 @@ if confidence is not None:
         unsafe_allow_html=True,
     )
 else:
-    st.markdown(
+    html_markdown(
         """
 <div class="live-confidence">
     Waiting for sensor prediction
@@ -2304,7 +2316,7 @@ current_sets = (
     else 0
 )
 
-st.markdown(
+html_markdown(
     f"""
 <div class="metric-row">
 
@@ -2550,7 +2562,7 @@ if (
 # HISTORY
 # ============================================================
 
-st.markdown(
+html_markdown(
     '<div class="gs-kicker" style="margin-top:10px;">'
     'ACTIVITY HISTORY'
     '</div>',
@@ -2679,7 +2691,7 @@ if st.session_state.summary:
 
     summary = st.session_state.summary
 
-    st.markdown(
+    html_markdown(
         """
 <div class="gs-card">
     <div class="gs-kicker">
