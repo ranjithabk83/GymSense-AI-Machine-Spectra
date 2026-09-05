@@ -32,8 +32,14 @@ MODELS = BASE / "models"
 AVATARS = BASE / "assets" / "avatars"
 
 REST_THRESHOLD = 0.12
-LOW_CONFIDENCE = 0.42
+
+# IMPORTANT:
+# Earlier this was 0.42.
+# That made 27% predictions show WORKOUT.
+LOW_CONFIDENCE = 0.20
+
 SMOOTH_WINDOW = 3
+
 
 REPETITIVE = {
     "BICEP CURL",
@@ -45,6 +51,7 @@ REPETITIVE = {
     "FRONT RAISE",
     "LATERAL RAISE",
 }
+
 
 ACTIVITY_SLUG = {
     "READY": "rest",
@@ -61,6 +68,7 @@ ACTIVITY_SLUG = {
     "LATERAL RAISE": "lateral_raise",
     "WORKOUT": "workout",
 }
+
 
 ACTIVITY_EMOJI = {
     "READY": "⚡",
@@ -80,7 +88,7 @@ ACTIVITY_EMOJI = {
 
 
 # ============================================================
-# COMPACT MOBILE CSS
+# MOBILE CSS
 # ============================================================
 
 st.markdown(
@@ -93,8 +101,16 @@ html, body, [class*="css"] {
 
 .stApp {
     background:
-        radial-gradient(circle at 10% 0%, rgba(67,87,255,.18), transparent 22rem),
-        radial-gradient(circle at 95% 0%, rgba(255,58,151,.15), transparent 22rem),
+        radial-gradient(
+            circle at 10% 0%,
+            rgba(67,87,255,.18),
+            transparent 22rem
+        ),
+        radial-gradient(
+            circle at 95% 0%,
+            rgba(255,58,151,.15),
+            transparent 22rem
+        ),
         #07101f;
 }
 
@@ -149,15 +165,18 @@ html, body, [class*="css"] {
 }
 
 
-/* SMALL CARDS */
+/* CARD */
 
 .gs-card {
     border: 1px solid rgba(255,255,255,.08);
-    background: linear-gradient(
-        145deg,
-        rgba(14,29,53,.96),
-        rgba(7,17,33,.97)
-    );
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(14,29,53,.96),
+            rgba(7,17,33,.97)
+        );
+
     border-radius: 17px;
     padding: 10px;
     margin-bottom: 8px;
@@ -172,16 +191,20 @@ html, body, [class*="css"] {
 }
 
 
-/* AVATAR CHOOSER — SMALL */
+/* AVATAR CHOOSER */
 
 .avatar-preview {
     width: 100%;
     max-width: 165px;
     height: 155px;
-    margin: 0 auto 5px auto;
+
+    margin:
+        0 auto 5px auto;
+
     display: flex;
     align-items: flex-end;
     justify-content: center;
+
     overflow: hidden;
 
     border-radius: 16px;
@@ -202,20 +225,20 @@ html, body, [class*="css"] {
 .avatar-preview img {
     width: 100%;
     height: 100%;
+
     object-fit: contain;
     object-position: center bottom;
 }
 
 
-/* MAIN WORKOUT AVATAR — COMPACT */
+/* LIVE AVATAR */
 
 .avatar-stage {
     width: 100%;
     max-width: 220px;
     height: 205px;
 
-    margin:
-        0 auto;
+    margin: 0 auto;
 
     position: relative;
 
@@ -243,18 +266,26 @@ html, body, [class*="css"] {
 .avatar-stage img {
     max-width: 95%;
     max-height: 92%;
+
     width: auto;
     height: auto;
+
     object-fit: contain;
     object-position: center bottom;
+
     transform-origin: 50% 92%;
     will-change: transform;
 }
 
+
+/* EXERCISE NAME INSIDE AVATAR */
+
 .activity-overlay {
     position: absolute;
+
     top: 7px;
     left: 50%;
+
     transform: translateX(-50%);
 
     z-index: 4;
@@ -284,153 +315,192 @@ html, body, [class*="css"] {
 }
 
 
-/* CURRENT ACTIVITY */
-
 .activity-name {
     text-align: center;
+
     margin-top: 5px;
+
     font-size: 1.35rem;
+
     line-height: 1;
+
     font-weight: 950;
+
     letter-spacing: -.04em;
 }
 
 .confidence {
     text-align: center;
+
     color: #8fa4c2;
+
     font-size: .67rem;
+
     margin-top: 3px;
 }
 
 
-/* MINI METRICS */
+/* METRICS */
 
 .metric-row {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
     gap: 6px;
+
     margin-top: 7px;
 }
 
 .mini-metric {
     text-align: center;
-    background: rgba(255,255,255,.035);
-    border: 1px solid rgba(255,255,255,.07);
+
+    background:
+        rgba(255,255,255,.035);
+
+    border:
+        1px solid
+        rgba(255,255,255,.07);
+
     border-radius: 12px;
+
     padding: 6px 3px;
 }
 
 .mini-metric-label {
     color: #8296b4;
+
     font-size: .56rem;
+
     font-weight: 800;
 }
 
 .mini-metric-value {
     color: white;
+
     font-size: .92rem;
+
     font-weight: 950;
+
     margin-top: 1px;
 }
 
 
-/* BUTTONS */
+/* STREAMLIT BUTTON */
 
 div.stButton > button {
     min-height: 37px !important;
-    padding: 4px 7px !important;
-    border-radius: 11px !important;
-    font-size: .72rem !important;
-    font-weight: 850 !important;
+
+    padding:
+        4px 7px !important;
+
+    border-radius:
+        11px !important;
+
+    font-size:
+        .72rem !important;
+
+    font-weight:
+        850 !important;
 }
 
 
-/* HISTORY */
-
-[data-testid="stDataFrame"] {
-    font-size: .7rem !important;
-}
-
-
-/* ANIMATIONS */
+/* AVATAR MOTION */
 
 .motion-walking img {
-    animation: walk .56s ease-in-out infinite alternate;
+    animation:
+        walk .56s ease-in-out infinite alternate;
 }
 
 .motion-running img {
-    animation: run .32s ease-in-out infinite alternate;
+    animation:
+        run .32s ease-in-out infinite alternate;
 }
 
 .motion-squat img {
-    animation: squat .9s ease-in-out infinite;
+    animation:
+        squat .9s ease-in-out infinite;
 }
 
 .motion-bicep-curl img,
 .motion-hammer-curl img {
-    animation: curl .72s ease-in-out infinite alternate;
+    animation:
+        curl .72s ease-in-out infinite alternate;
 }
 
 .motion-lunge img {
-    animation: lunge .9s ease-in-out infinite alternate;
+    animation:
+        lunge .9s ease-in-out infinite alternate;
 }
 
 .motion-jumping-jack img {
-    animation: jump .62s ease-in-out infinite;
+    animation:
+        jump .62s ease-in-out infinite;
 }
 
 .motion-shoulder-press img,
 .motion-front-raise img,
 .motion-lateral-raise img {
-    animation: lift .76s ease-in-out infinite alternate;
+    animation:
+        lift .76s ease-in-out infinite alternate;
 }
 
 .motion-workout img {
-    animation: workout .65s ease-in-out infinite alternate;
+    animation:
+        workout .65s ease-in-out infinite alternate;
 }
 
 .motion-rest img {
-    animation: breathe 2s ease-in-out infinite;
+    animation:
+        breathe 2s ease-in-out infinite;
 }
 
 
 @keyframes walk {
+
     0% {
         transform:
-            translate(-7px, 0)
+            translate(-7px,0)
             rotate(-1.5deg);
     }
 
     50% {
         transform:
-            translate(0, -7px)
+            translate(0,-7px)
             rotate(1.5deg);
     }
 
     100% {
         transform:
-            translate(7px, 0)
+            translate(7px,0)
             rotate(-1deg);
     }
 }
 
+
 @keyframes run {
+
     0% {
         transform:
-            translate(-9px, 1px)
+            translate(-9px,1px)
             rotate(-3deg);
     }
 
     100% {
         transform:
-            translate(9px, -9px)
+            translate(9px,-9px)
             rotate(3deg);
     }
 }
 
+
 @keyframes squat {
-    0%, 100% {
-        transform: translateY(0);
+
+    0%,
+    100% {
+        transform:
+            translateY(0);
     }
 
     50% {
@@ -440,7 +510,9 @@ div.stButton > button {
     }
 }
 
+
 @keyframes curl {
+
     0% {
         transform:
             translateY(0)
@@ -454,21 +526,27 @@ div.stButton > button {
     }
 }
 
+
 @keyframes lunge {
+
     0% {
         transform:
-            translate(-5px, 0);
+            translate(-5px,0);
     }
 
     100% {
         transform:
-            translate(6px, 13px);
+            translate(6px,13px);
     }
 }
 
+
 @keyframes jump {
-    0%, 100% {
-        transform: translateY(0);
+
+    0%,
+    100% {
+        transform:
+            translateY(0);
     }
 
     50% {
@@ -478,7 +556,9 @@ div.stButton > button {
     }
 }
 
+
 @keyframes lift {
+
     0% {
         transform:
             translateY(0)
@@ -492,7 +572,9 @@ div.stButton > button {
     }
 }
 
+
 @keyframes workout {
+
     0% {
         transform:
             translateY(0)
@@ -506,18 +588,23 @@ div.stButton > button {
     }
 }
 
+
 @keyframes breathe {
-    0%,100% {
-        transform: scale(1);
+
+    0%,
+    100% {
+        transform:
+            scale(1);
     }
 
     50% {
-        transform: scale(1.012);
+        transform:
+            scale(1.012);
     }
 }
 
 
-/* EXTRA MOBILE */
+/* PHONE */
 
 @media(max-width: 480px) {
 
@@ -543,7 +630,6 @@ div.stButton > button {
     .mini-metric-value {
         font-size: .82rem;
     }
-
 }
 
 </style>
@@ -577,26 +663,34 @@ DEFAULTS = {
     "summary": None,
 }
 
+
 for key, value in DEFAULTS.items():
-    st.session_state.setdefault(key, value)
+    st.session_state.setdefault(
+        key,
+        value,
+    )
 
 
 # ============================================================
-# LOAD ML MODEL
+# LOAD MODEL
 # ============================================================
 
 @st.cache_resource
 def load_ml():
+
     model = joblib.load(
-        MODELS / "exercise_classifier.pkl"
+        MODELS /
+        "exercise_classifier.pkl"
     )
 
     scaler = joblib.load(
-        MODELS / "scaler.pkl"
+        MODELS /
+        "scaler.pkl"
     )
 
     encoder = joblib.load(
-        MODELS / "label_encoder.pkl"
+        MODELS /
+        "label_encoder.pkl"
     )
 
     metadata = {}
@@ -607,6 +701,7 @@ def load_ml():
     )
 
     if metadata_path.exists():
+
         metadata = json.loads(
             metadata_path.read_text(
                 encoding="utf-8"
@@ -614,8 +709,11 @@ def load_ml():
         )
 
     feature_names = (
-        metadata.get("feature_names")
-        or get_feature_names()
+        metadata.get(
+            "feature_names"
+        )
+        or
+        get_feature_names()
     )
 
     return (
@@ -627,18 +725,27 @@ def load_ml():
 
 
 # ============================================================
-# PREDICTION
+# ML PREDICTION
 # ============================================================
 
 def predict_activity(
     records: list[dict[str, Any]]
 ):
 
-    model, scaler, encoder, names = load_ml()
+    (
+        model,
+        scaler,
+        encoder,
+        names,
+    ) = load_ml()
 
-    features = extract_features_from_records(
-        records
+
+    features = (
+        extract_features_from_records(
+            records
+        )
     )
+
 
     x = np.array(
         [[
@@ -648,30 +755,41 @@ def predict_activity(
                     0.0
                 )
             )
-            for name in names
+            for name
+            in names
         ]],
         dtype=float,
     )
 
+
     x = scaler.transform(x)
+
 
     confidence = None
     probabilities = {}
+
 
     if hasattr(
         model,
         "predict_proba"
     ):
 
-        probs = model.predict_proba(x)[0]
+        probs = (
+            model.predict_proba(x)[0]
+        )
+
 
         class_ids = getattr(
             model,
             "classes_",
-            np.arange(len(probs))
+            np.arange(
+                len(probs)
+            )
         )
 
+
         labels = []
+
 
         for class_id in class_ids:
 
@@ -690,15 +808,24 @@ def predict_activity(
                 )
             )
 
-            labels.append(label)
+            labels.append(
+                label
+            )
+
 
         best_index = int(
-            np.argmax(probs)
+            np.argmax(
+                probs
+            )
         )
 
-        raw_prediction = labels[
-            best_index
-        ]
+
+        raw_prediction = (
+            labels[
+                best_index
+            ]
+        )
+
 
         confidence = float(
             probs[
@@ -706,14 +833,18 @@ def predict_activity(
             ]
         )
 
+
         probabilities = {
-            label: float(probability)
+            label:
+            float(probability)
+
             for label, probability
             in zip(
                 labels,
-                probs
+                probs,
             )
         }
+
 
     else:
 
@@ -721,11 +852,13 @@ def predict_activity(
             model.predict(x)[0]
         )
 
+
         raw_prediction = str(
             encoder.inverse_transform(
                 [encoded]
             )[0]
         )
+
 
         raw_prediction = (
             raw_prediction
@@ -737,7 +870,9 @@ def predict_activity(
         )
 
 
-    # Stationary check
+    # ========================================================
+    # REST CHECK
+    # ========================================================
 
     ax = np.array([
         float(
@@ -746,8 +881,10 @@ def predict_activity(
                 0.0
             )
         )
-        for record in records
+        for record
+        in records
     ])
+
 
     ay = np.array([
         float(
@@ -756,8 +893,10 @@ def predict_activity(
                 0.0
             )
         )
-        for record in records
+        for record
+        in records
     ])
+
 
     az = np.array([
         float(
@@ -766,8 +905,10 @@ def predict_activity(
                 9.81
             )
         )
-        for record in records
+        for record
+        in records
     ])
+
 
     movement_variance = float(
         np.var(ax)
@@ -778,24 +919,30 @@ def predict_activity(
     )
 
 
-    if movement_variance < REST_THRESHOLD:
+    # PHONE IS NEARLY STILL
+    if (
+        movement_variance
+        <
+        REST_THRESHOLD
+    ):
 
         return (
             "REST",
             probabilities.get(
                 "REST"
             ),
-            "REST confidence"
-            if "REST" in probabilities
-            else "Stationary",
+            "REST confidence",
             raw_prediction,
         )
 
 
+    # MOVEMENT EXISTS BUT VERY LOW CONFIDENCE
     if (
         confidence is not None
         and
-        confidence < LOW_CONFIDENCE
+        confidence
+        <
+        LOW_CONFIDENCE
     ):
 
         return (
@@ -806,6 +953,7 @@ def predict_activity(
         )
 
 
+    # USE ACTUAL ML CLASS
     return (
         raw_prediction,
         confidence,
@@ -815,97 +963,159 @@ def predict_activity(
 
 
 # ============================================================
-# SMOOTH PREDICTION
+# SMOOTHING
 # ============================================================
 
-def smooth_prediction(label):
+def smooth_prediction(
+    label
+):
 
     recent = list(
         st.session_state.recent
     )
 
-    recent.append(label)
+
+    recent.append(
+        label
+    )
+
 
     recent = recent[
         -SMOOTH_WINDOW:
     ]
 
-    st.session_state.recent = recent
 
-    if len(recent) < SMOOTH_WINDOW:
+    st.session_state.recent = (
+        recent
+    )
+
+
+    if (
+        len(recent)
+        <
+        SMOOTH_WINDOW
+    ):
+
         return label
 
+
     winner, count = (
-        Counter(recent)
+        Counter(
+            recent
+        )
         .most_common(1)[0]
     )
 
+
     if count >= 2:
         return winner
+
 
     current = (
         st.session_state
         .current_activity
     )
 
+
     if current != "READY":
         return current
+
 
     return label
 
 
 # ============================================================
-# REP COUNTING
+# REPS
 # ============================================================
 
-def find_rep_peaks(records):
+def find_rep_peaks(
+    records
+):
 
     if len(records) < 12:
         return []
 
+
     ax = np.array([
-        float(r.get("accel_x", 0))
-        for r in records
+        float(
+            record.get(
+                "accel_x",
+                0
+            )
+        )
+        for record
+        in records
     ])
+
 
     ay = np.array([
-        float(r.get("accel_y", 0))
-        for r in records
+        float(
+            record.get(
+                "accel_y",
+                0
+            )
+        )
+        for record
+        in records
     ])
+
 
     az = np.array([
-        float(r.get("accel_z", 9.81))
-        for r in records
+        float(
+            record.get(
+                "accel_z",
+                9.81
+            )
+        )
+        for record
+        in records
     ])
 
+
     magnitude = np.sqrt(
-        ax * ax +
-        ay * ay +
+        ax * ax
+        +
+        ay * ay
+        +
         az * az
     )
 
+
     dynamic = np.abs(
-        magnitude -
-        np.median(magnitude)
+        magnitude
+        -
+        np.median(
+            magnitude
+        )
     )
+
 
     threshold = max(
         0.65,
         float(
-            np.mean(dynamic)
+            np.mean(
+                dynamic
+            )
             +
-            0.75 *
-            np.std(dynamic)
+            0.75
+            *
+            np.std(
+                dynamic
+            )
         )
     )
 
+
     peaks = []
+
     last_index = -999
+
 
     min_distance = max(
         6,
         len(records) // 10
     )
+
 
     for index in range(
         1,
@@ -913,13 +1123,29 @@ def find_rep_peaks(records):
     ):
 
         if (
-            dynamic[index] > threshold
+            dynamic[index]
+            >
+            threshold
+
             and
-            dynamic[index] >= dynamic[index - 1]
+
+            dynamic[index]
+            >=
+            dynamic[index - 1]
+
             and
-            dynamic[index] > dynamic[index + 1]
+
+            dynamic[index]
+            >
+            dynamic[index + 1]
+
             and
-            index - last_index >= min_distance
+
+            index
+            -
+            last_index
+            >=
+            min_distance
         ):
 
             timestamp = int(
@@ -928,11 +1154,18 @@ def find_rep_peaks(records):
                     "timestamp_ms",
                     0
                 )
-                or 0
+                or
+                0
             )
 
-            peaks.append(timestamp)
-            last_index = index
+            peaks.append(
+                timestamp
+            )
+
+            last_index = (
+                index
+            )
+
 
     return peaks
 
@@ -942,13 +1175,19 @@ def update_reps(
     activity
 ):
 
-    if activity not in REPETITIVE:
+    if (
+        activity
+        not in
+        REPETITIVE
+    ):
         return
+
 
     st.session_state.rep_totals.setdefault(
         activity,
-        0
+        0,
     )
+
 
     last_timestamp = int(
         st.session_state
@@ -959,21 +1198,32 @@ def update_reps(
         )
     )
 
+
     for timestamp in find_rep_peaks(
         records
     ):
 
         if (
             timestamp > 0
+
             and
-            timestamp - last_timestamp >= 550
+
+            timestamp
+            -
+            last_timestamp
+            >=
+            550
         ):
 
             st.session_state.rep_totals[
                 activity
             ] += 1
 
-            last_timestamp = timestamp
+
+            last_timestamp = (
+                timestamp
+            )
+
 
     st.session_state.last_rep_ts[
         activity
@@ -981,22 +1231,28 @@ def update_reps(
 
 
 # ============================================================
-# ACTIVITY HISTORY
+# HISTORY
 # ============================================================
 
-def start_activity(activity):
+def start_activity(
+    activity
+):
 
-    st.session_state.current_activity = activity
+    st.session_state.current_activity = (
+        activity
+    )
 
     st.session_state.activity_started = (
         time.time()
     )
 
+
     if activity in REPETITIVE:
 
         if (
             st.session_state.last_non_rest
-            != activity
+            !=
+            activity
         ):
 
             st.session_state.set_totals[
@@ -1008,8 +1264,10 @@ def start_activity(activity):
                     activity,
                     0
                 )
-                + 1
+                +
+                1
             )
+
 
         st.session_state.segment_rep_start = (
             st.session_state
@@ -1020,7 +1278,9 @@ def start_activity(activity):
             )
         )
 
+
     else:
+
         st.session_state.segment_rep_start = 0
 
 
@@ -1036,6 +1296,7 @@ def close_activity():
         .activity_started
     )
 
+
     if (
         activity in (
             None,
@@ -1044,44 +1305,64 @@ def close_activity():
         or
         started is None
     ):
+
         return
+
 
     end_time = time.time()
 
+
     reps = 0
+
 
     if activity in REPETITIVE:
 
         reps = max(
             0,
+
             st.session_state
             .rep_totals
             .get(
                 activity,
                 0
             )
+
             -
+
             st.session_state
             .segment_rep_start
         )
 
+
     st.session_state.history.append(
         {
-            "activity": activity,
-            "start": started,
-            "end": end_time,
-            "duration": max(
-                0,
-                end_time - started
-            ),
-            "reps": reps,
+            "activity":
+                activity,
+
+            "start":
+                started,
+
+            "end":
+                end_time,
+
+            "duration":
+                max(
+                    0,
+                    end_time - started
+                ),
+
+            "reps":
+                reps,
+
             "confidence":
                 st.session_state
                 .current_confidence,
         }
     )
 
+
     if activity != "REST":
+
         st.session_state.last_non_rest = (
             activity
         )
@@ -1096,19 +1377,29 @@ def change_activity(
         .current_activity
     )
 
+
     if old_activity == "READY":
+
         start_activity(
             new_activity
         )
+
         return
+
 
     if old_activity == new_activity:
         return
 
+
     close_activity()
 
+
     if new_activity == "REST":
-        st.session_state.last_non_rest = None
+
+        st.session_state.last_non_rest = (
+            None
+        )
+
 
     start_activity(
         new_activity
@@ -1121,7 +1412,9 @@ def change_activity(
 
 def start_workout():
 
-    st.session_state.workout_running = True
+    st.session_state.workout_running = (
+        True
+    )
 
     st.session_state.workout_start = (
         time.time()
@@ -1131,14 +1424,27 @@ def start_workout():
         "READY"
     )
 
-    st.session_state.activity_started = None
+    st.session_state.activity_started = (
+        None
+    )
+
     st.session_state.history = []
+
     st.session_state.rep_totals = {}
+
     st.session_state.set_totals = {}
+
     st.session_state.last_rep_ts = {}
+
     st.session_state.recent = []
-    st.session_state.last_non_rest = None
-    st.session_state.summary = None
+
+    st.session_state.last_non_rest = (
+        None
+    )
+
+    st.session_state.summary = (
+        None
+    )
 
 
 def end_workout():
@@ -1146,28 +1452,43 @@ def end_workout():
     if not st.session_state.workout_running:
         return
 
+
     close_activity()
+
 
     end_time = time.time()
 
+
     start_time = (
         st.session_state.workout_start
-        or end_time
+        or
+        end_time
     )
+
 
     active_time = sum(
         item["duration"]
+
         for item
         in st.session_state.history
-        if item["activity"] != "REST"
+
+        if item["activity"]
+        !=
+        "REST"
     )
+
 
     activities = sorted({
         item["activity"]
+
         for item
         in st.session_state.history
-        if item["activity"] != "REST"
+
+        if item["activity"]
+        !=
+        "REST"
     })
+
 
     st.session_state.summary = {
         "duration":
@@ -1175,27 +1496,41 @@ def end_workout():
                 0,
                 end_time - start_time
             ),
+
         "active":
             active_time,
+
         "reps":
             sum(
                 st.session_state
                 .rep_totals
                 .values()
             ),
+
         "sets":
             sum(
                 st.session_state
                 .set_totals
                 .values()
             ),
+
         "activities":
             activities,
     }
 
-    st.session_state.workout_running = False
-    st.session_state.current_activity = "READY"
-    st.session_state.activity_started = None
+
+    st.session_state.workout_running = (
+        False
+    )
+
+    st.session_state.current_activity = (
+        "READY"
+    )
+
+    st.session_state.activity_started = (
+        None
+    )
+
     st.session_state.recent = []
 
 
@@ -1203,19 +1538,27 @@ def end_workout():
 # AVATAR
 # ============================================================
 
-def file_to_uri(path: Path):
+def file_to_uri(
+    path: Path
+):
 
-    mime, _ = mimetypes.guess_type(
-        path.name
+    mime, _ = (
+        mimetypes.guess_type(
+            path.name
+        )
     )
+
 
     encoded = (
         base64
         .b64encode(
             path.read_bytes()
         )
-        .decode("ascii")
+        .decode(
+            "ascii"
+        )
     )
+
 
     return (
         f"data:"
@@ -1235,12 +1578,14 @@ def get_avatar_media(
         gender
     )
 
-    slug = ACTIVITY_SLUG.get(
-        activity,
-        "workout"
+
+    slug = (
+        ACTIVITY_SLUG.get(
+            activity,
+            "workout"
+        )
     )
 
-    # Real animation assets have priority
 
     for extension in (
         ".gif",
@@ -1254,16 +1599,20 @@ def get_avatar_media(
             f"{slug}{extension}"
         )
 
+
         if candidate.exists():
             return candidate
+
 
     default_image = (
         folder /
         "default.png"
     )
 
+
     if default_image.exists():
         return default_image
+
 
     return None
 
@@ -1281,12 +1630,15 @@ def show_avatar_preview(
 
         return
 
+
     st.markdown(
         f"""
 <div class="avatar-preview">
+
 <img
 src="{file_to_uri(path)}"
 alt="{name}">
+
 </div>
 """,
         unsafe_allow_html=True,
@@ -1311,10 +1663,13 @@ def current_elapsed():
             )
         )
 
+
     return 0
 
 
-def format_duration(seconds):
+def format_duration(
+    seconds
+):
 
     seconds = int(
         max(
@@ -1323,30 +1678,41 @@ def format_duration(seconds):
         )
     )
 
-    minutes, seconds = divmod(
-        seconds,
-        60
+
+    minutes, seconds = (
+        divmod(
+            seconds,
+            60
+        )
     )
 
-    return f"{minutes:02d}:{seconds:02d}"
+
+    return (
+        f"{minutes:02d}:"
+        f"{seconds:02d}"
+    )
 
 
 def show_current_avatar():
 
     gender = (
         st.session_state.avatar
-        or "female"
+        or
+        "female"
     )
+
 
     activity = (
         st.session_state
         .current_activity
     )
 
+
     media = get_avatar_media(
         gender,
         activity
     )
+
 
     if media is None:
 
@@ -1356,21 +1722,18 @@ def show_current_avatar():
 
         return
 
+
     emoji = ACTIVITY_EMOJI.get(
         activity,
         "🔥"
     )
 
-    if media.suffix.lower() == ".mp4":
 
-        st.markdown(
-            f"""
-<div class="activity-overlay">
-{emoji} {activity}
-</div>
-""",
-            unsafe_allow_html=True,
-        )
+    if (
+        media.suffix.lower()
+        ==
+        ".mp4"
+    ):
 
         st.video(
             str(media),
@@ -1380,6 +1743,7 @@ def show_current_avatar():
         )
 
         return
+
 
     motion_class = (
         "motion-"
@@ -1395,12 +1759,16 @@ def show_current_avatar():
         )
     )
 
+
     st.markdown(
         f"""
 <div class="avatar-stage {motion_class}">
 
 <div class="activity-overlay">
-{emoji} {activity}
+
+{emoji}
+{activity}
+
 </div>
 
 <img
@@ -1414,7 +1782,7 @@ alt="{activity} avatar">
 
 
 # ============================================================
-# PHONE SENSOR COMPONENT
+# SENSOR COMPONENT
 # ============================================================
 
 SENSOR_HTML = r"""
@@ -1423,10 +1791,15 @@ SENSOR_HTML = r"""
 <div class="sensor-title-row">
 
 <div>
-<b>MOTION SENSOR</b>
+
+<b>
+MOTION SENSOR
+</b>
+
 <span id="message">
 Tap Enable Sensor
 </span>
+
 </div>
 
 <span id="badge">
@@ -1459,13 +1832,17 @@ End Workout
 
 <div class="sensor-grid">
 
+
 <div class="sensor-box">
 
 <div class="sensor-box-title">
+
 ACCELEROMETER
+
 <span id="acc-status">
 OFF
 </span>
+
 </div>
 
 <canvas id="acc-canvas"></canvas>
@@ -1492,10 +1869,13 @@ Z <b id="az">0.00</b>
 <div class="sensor-box">
 
 <div class="sensor-box-title">
+
 GYROSCOPE
+
 <span id="gyro-status">
 OFF
 </span>
+
 </div>
 
 <canvas id="gyro-canvas"></canvas>
@@ -1518,11 +1898,16 @@ OFF
 
 </div>
 
+
 </div>
 
 
 <div class="sensor-note">
-Phone motion only • Not ECG / heart-rate data
+
+Phone motion only
+•
+Not ECG / heart-rate data
+
 </div>
 
 </div>
@@ -1532,245 +1917,348 @@ Phone motion only • Not ECG / heart-rate data
 SENSOR_CSS = r"""
 
 .sensor-card {
-    color: #ffffff;
 
-    border:
-        1px solid
-        rgba(255,255,255,.08);
+color:
+#ffffff;
 
-    background:
-        linear-gradient(
-            145deg,
-            #0b1930,
-            #071426
-        );
+border:
+1px solid
+rgba(255,255,255,.08);
 
-    border-radius: 16px;
+background:
+linear-gradient(
+145deg,
+#0b1930,
+#071426
+);
 
-    padding: 9px;
+border-radius:
+16px;
 
-    font-family:
-        Inter,
-        system-ui;
+padding:
+9px;
+
+font-family:
+Inter,
+system-ui;
+
 }
 
 
 .sensor-title-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+
+display:flex;
+
+justify-content:
+space-between;
+
+align-items:
+center;
+
 }
 
 
 .sensor-title-row b {
-    display: block;
-    font-size: 10px;
-    letter-spacing: .13em;
-    color: #8ba0bd;
+
+display:block;
+
+font-size:
+10px;
+
+letter-spacing:
+.13em;
+
+color:
+#8ba0bd;
+
 }
 
 
 .sensor-title-row div span {
-    display: block;
-    font-size: 11px;
-    color: #9db0ca;
-    margin-top: 2px;
+
+display:block;
+
+font-size:
+11px;
+
+color:
+#9db0ca;
+
+margin-top:
+2px;
+
 }
 
 
 #badge {
-    font-size: 10px;
-    font-weight: 900;
 
-    border:
-        1px solid
-        #35465e;
+font-size:
+10px;
 
-    border-radius: 999px;
+font-weight:
+900;
 
-    padding:
-        4px 7px;
+border:
+1px solid
+#35465e;
+
+border-radius:
+999px;
+
+padding:
+4px 7px;
+
 }
 
 
 .button-grid {
-    display: grid;
 
-    grid-template-columns:
-        1.2fr 1fr 1fr;
+display:grid;
 
-    gap: 5px;
+grid-template-columns:
+1.2fr 1fr 1fr;
 
-    margin-top: 8px;
+gap:
+5px;
+
+margin-top:
+8px;
+
 }
 
 
 button {
-    min-height: 35px;
 
-    border-radius: 10px;
+min-height:
+35px;
 
-    border:
-        1px solid
-        rgba(255,255,255,.10);
+border-radius:
+10px;
 
-    background:
-        #142540;
+border:
+1px solid
+rgba(255,255,255,.10);
 
-    color: white;
+background:
+#142540;
 
-    font-size: 10px;
+color:white;
 
-    font-weight: 850;
+font-size:
+10px;
 
-    padding: 4px;
+font-weight:
+850;
+
+padding:
+4px;
+
 }
 
 
 #enable {
-    background:
-        linear-gradient(
-            90deg,
-            #ff4e9f,
-            #8e48ff
-        );
 
-    border: none;
+background:
+linear-gradient(
+90deg,
+#ff4e9f,
+#8e48ff
+);
+
+border:none;
+
 }
 
 
 #start {
-    background:
-        linear-gradient(
-            90deg,
-            #22b879,
-            #24d6a0
-        );
 
-    border: none;
+background:
+linear-gradient(
+90deg,
+#22b879,
+#24d6a0
+);
+
+border:none;
+
 }
 
 
 #end {
-    background:
-        linear-gradient(
-            90deg,
-            #d43d68,
-            #ff536d
-        );
 
-    border: none;
+background:
+linear-gradient(
+90deg,
+#d43d68,
+#ff536d
+);
+
+border:none;
+
 }
 
 
 button:disabled {
-    opacity: .34;
+
+opacity:
+.34;
+
 }
 
 
 .sensor-grid {
-    display: grid;
 
-    grid-template-columns:
-        1fr 1fr;
+display:grid;
 
-    gap: 6px;
+grid-template-columns:
+1fr 1fr;
 
-    margin-top: 7px;
+gap:
+6px;
+
+margin-top:
+7px;
+
 }
 
 
 .sensor-box {
-    border:
-        1px solid
-        rgba(255,255,255,.06);
 
-    background:
-        #06111f;
+border:
+1px solid
+rgba(255,255,255,.06);
 
-    border-radius: 12px;
+background:
+#06111f;
 
-    padding: 6px;
+border-radius:
+12px;
+
+padding:
+6px;
+
 }
 
 
 .sensor-box-title {
-    display: flex;
-    justify-content: space-between;
 
-    font-size: 8px;
+display:flex;
 
-    color:
-        #9db0ca;
+justify-content:
+space-between;
 
-    font-weight: 850;
+font-size:
+8px;
+
+color:
+#9db0ca;
+
+font-weight:
+850;
+
 }
 
 
 .sensor-box-title span {
-    color: #50e2a4;
+
+color:
+#50e2a4;
+
 }
 
 
 canvas {
-    display: block;
 
-    width: 100%;
+display:block;
 
-    height: 58px;
+width:
+100%;
 
-    margin-top: 2px;
+height:
+58px;
+
+margin-top:
+2px;
+
 }
 
 
 .sensor-values {
-    display: flex;
-    justify-content: space-between;
 
-    gap: 3px;
+display:flex;
 
-    font-size: 8px;
+justify-content:
+space-between;
 
-    color: #8297b7;
+gap:
+3px;
+
+font-size:
+8px;
+
+color:
+#8297b7;
+
 }
 
 
 .sensor-values b {
-    color: #ffffff;
+
+color:
+#ffffff;
+
 }
 
 
 .sensor-note {
-    font-size: 8px;
 
-    color: #657c9b;
+font-size:
+8px;
 
-    text-align: center;
+color:
+#657c9b;
 
-    margin-top: 4px;
+text-align:
+center;
+
+margin-top:
+4px;
+
 }
 
 
 @media(max-width:420px) {
 
-    .button-grid {
-        grid-template-columns:
-            1fr 1fr 1fr;
-    }
+.button-grid {
 
-    button {
-        font-size: 9px;
-        min-height: 33px;
-    }
+grid-template-columns:
+1fr 1fr 1fr;
 
-    .sensor-grid {
-        grid-template-columns:
-            1fr 1fr;
-    }
+}
 
-    canvas {
-        height: 50px;
-    }
+button {
+
+font-size:
+9px;
+
+min-height:
+33px;
+
+}
+
+.sensor-grid {
+
+grid-template-columns:
+1fr 1fr;
+
+}
+
+canvas {
+
+height:
+50px;
+
+}
 
 }
 """
@@ -1781,9 +2269,9 @@ SENSOR_JS = r"""
 export default function(component) {
 
 const {
-    parentElement,
-    setTriggerValue,
-    data
+parentElement,
+setTriggerValue,
+data
 } = component;
 
 
@@ -1791,21 +2279,22 @@ if (!parentElement.__gymSenseState) {
 
 const S = {
 
-    enabled: false,
+enabled:false,
 
-    calibrated: false,
+calibrated:false,
 
-    workout: false,
+workout:false,
 
-    buffer: [],
+buffer:[],
 
-    lastEmit: 0,
+lastEmit:0,
 
-    accHistory: [],
+accHistory:[],
 
-    gyroHistory: [],
+gyroHistory:[],
 
-    listener: null
+listener:null
+
 };
 
 
@@ -1849,251 +2338,307 @@ const gg = q('#gg');
 
 
 function setMessage(text) {
-    message.textContent = text;
+
+message.textContent =
+text;
+
 }
 
 
 function setLive(live) {
 
-    badge.textContent =
-        live
-        ? '● LIVE'
-        : '● OFF';
+badge.textContent =
+live
+?
+'● LIVE'
+:
+'● OFF';
 
-    badge.style.color =
-        live
-        ? '#56e5a8'
-        : '#ffffff';
 
-    accStatus.textContent =
-        live
-        ? 'LIVE'
-        : 'OFF';
+badge.style.color =
+live
+?
+'#56e5a8'
+:
+'#ffffff';
 
-    gyroStatus.textContent =
-        live
-        ? 'LIVE'
-        : 'OFF';
+
+accStatus.textContent =
+live
+?
+'LIVE'
+:
+'OFF';
+
+
+gyroStatus.textContent =
+live
+?
+'LIVE'
+:
+'OFF';
+
 }
 
 
 function addHistory(
-    list,
-    value
+list,
+value
 ) {
 
-    list.push(value);
+list.push(
+value
+);
 
-    if (list.length > 55) {
 
-        list.splice(
-            0,
-            list.length - 55
-        );
-    }
+if (
+list.length > 55
+) {
+
+list.splice(
+0,
+list.length - 55
+);
+
+}
+
 }
 
 
 function drawGraph(
-    canvas,
-    rows,
-    colors
+canvas,
+rows,
+colors
 ) {
 
-    const rect =
-        canvas.getBoundingClientRect();
-
-    const ratio =
-        window.devicePixelRatio
-        || 1;
-
-    const width =
-        Math.max(
-            120,
-            rect.width
-        );
-
-    const height =
-        Math.max(
-            45,
-            rect.height
-        );
+const rect =
+canvas.getBoundingClientRect();
 
 
-    canvas.width =
-        width * ratio;
-
-    canvas.height =
-        height * ratio;
-
-
-    const ctx =
-        canvas.getContext(
-            '2d'
-        );
+const ratio =
+window.devicePixelRatio
+||
+1;
 
 
-    ctx.scale(
-        ratio,
-        ratio
-    );
+const width =
+Math.max(
+120,
+rect.width
+);
 
 
-    ctx.clearRect(
-        0,
-        0,
-        width,
-        height
-    );
+const height =
+Math.max(
+45,
+rect.height
+);
 
 
-    ctx.strokeStyle =
-        'rgba(120,150,190,.12)';
+canvas.width =
+width * ratio;
 
 
-    for (
-        let index = 0;
-        index <= 3;
-        index++
-    ) {
-
-        const y =
-            height * index / 3;
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            0,
-            y
-        );
-
-        ctx.lineTo(
-            width,
-            y
-        );
-
-        ctx.stroke();
-    }
+canvas.height =
+height * ratio;
 
 
-    if (rows.length < 2) {
-        return;
-    }
+const ctx =
+canvas.getContext(
+'2d'
+);
 
 
-    const flattened =
-        rows
-        .flat()
-        .filter(
-            Number.isFinite
-        );
+ctx.scale(
+ratio,
+ratio
+);
 
 
-    const maxValue =
-        Math.max(
-            1,
-            ...flattened.map(
-                value =>
-                Math.abs(value)
-            )
-        );
+ctx.clearRect(
+0,
+0,
+width,
+height
+);
 
 
-    const middle =
-        height / 2;
+ctx.strokeStyle =
+'rgba(120,150,190,.12)';
 
 
-    for (
-        let axis = 0;
-        axis < 3;
-        axis++
-    ) {
+for (
+let index = 0;
+index <= 3;
+index++
+) {
 
-        ctx.strokeStyle =
-            colors[axis];
-
-        ctx.lineWidth =
-            1.4;
-
-        ctx.beginPath();
+const y =
+height * index / 3;
 
 
-        rows.forEach(
-            (row, index) => {
+ctx.beginPath();
 
-                const x =
-                    index
-                    *
-                    width
-                    /
-                    (
-                        rows.length - 1
-                    );
+ctx.moveTo(
+0,
+y
+);
 
-                const y =
-                    middle
-                    -
-                    (
-                        row[axis]
-                        /
-                        maxValue
-                    )
-                    *
-                    (
-                        height * .40
-                    );
+ctx.lineTo(
+width,
+y
+);
+
+ctx.stroke();
+
+}
 
 
-                if (index === 0) {
+if (
+rows.length < 2
+) {
 
-                    ctx.moveTo(
-                        x,
-                        y
-                    );
+return;
 
-                } else {
-
-                    ctx.lineTo(
-                        x,
-                        y
-                    );
-                }
-            }
-        );
+}
 
 
-        ctx.stroke();
-    }
+const flattened =
+rows
+.flat()
+.filter(
+Number.isFinite
+);
+
+
+const maxValue =
+Math.max(
+1,
+...flattened.map(
+value =>
+Math.abs(value)
+)
+);
+
+
+const middle =
+height / 2;
+
+
+for (
+let axis = 0;
+axis < 3;
+axis++
+) {
+
+ctx.strokeStyle =
+colors[axis];
+
+
+ctx.lineWidth =
+1.4;
+
+
+ctx.beginPath();
+
+
+rows.forEach(
+(row,index) => {
+
+const x =
+index
+*
+width
+/
+(
+rows.length - 1
+);
+
+
+const y =
+middle
+
+-
+
+(
+row[axis]
+/
+maxValue
+)
+
+*
+(
+height * .40
+);
+
+
+if (
+index === 0
+) {
+
+ctx.moveTo(
+x,
+y
+);
+
+}
+
+else {
+
+ctx.lineTo(
+x,
+y
+);
+
+}
+
+}
+);
+
+
+ctx.stroke();
+
+}
+
 }
 
 
 function animationLoop() {
 
-    drawGraph(
-        q('#acc-canvas'),
-        S.accHistory,
-        [
-            '#ff5d79',
-            '#42b5ff',
-            '#42e39c'
-        ]
-    );
+drawGraph(
+
+q('#acc-canvas'),
+
+S.accHistory,
+
+[
+'#ff5d79',
+'#42b5ff',
+'#42e39c'
+]
+
+);
 
 
-    drawGraph(
-        q('#gyro-canvas'),
-        S.gyroHistory,
-        [
-            '#ff5bc3',
-            '#42e5ef',
-            '#ffd45a'
-        ]
-    );
+drawGraph(
+
+q('#gyro-canvas'),
+
+S.gyroHistory,
+
+[
+'#ff5bc3',
+'#42e5ef',
+'#ffd45a'
+]
+
+);
 
 
-    requestAnimationFrame(
-        animationLoop
-    );
+requestAnimationFrame(
+animationLoop
+);
+
 }
 
 
@@ -2102,465 +2647,568 @@ animationLoop();
 
 async function enableSensors() {
 
-    try {
+try {
 
-        if (
-            !(
-                'DeviceMotionEvent'
-                in window
-            )
-        ) {
 
-            setMessage(
-                'Motion sensor unavailable'
-            );
+if (
+!(
+'DeviceMotionEvent'
+in window
+)
+) {
 
-            setTriggerValue(
-                'sensor_status',
-                {
-                    status:
-                        'UNSUPPORTED',
-                    ts:
-                        Date.now()
-                }
-            );
+setMessage(
+'Motion sensor unavailable'
+);
 
-            return;
-        }
 
+setTriggerValue(
 
-        if (
-            typeof
-            DeviceMotionEvent.requestPermission
-            ===
-            'function'
-        ) {
-
-            const permission =
-                await
-                DeviceMotionEvent
-                .requestPermission();
+'sensor_status',
 
+{
 
-            if (
-                permission !==
-                'granted'
-            ) {
+status:
+'UNSUPPORTED',
 
-                setMessage(
-                    'Sensor permission denied'
-                );
+ts:
+Date.now()
 
-                setTriggerValue(
-                    'sensor_status',
-                    {
-                        status:
-                            'DENIED',
-                        ts:
-                            Date.now()
-                    }
-                );
+}
 
-                return;
-            }
-        }
+);
 
 
-        if (!S.listener) {
-
-            S.listener =
-                event => {
+return;
 
-                    const accel =
-                        event
-                        .accelerationIncludingGravity
+}
 
-                        ||
-
-                        event
-                        .acceleration
 
-                        ||
+if (
+typeof
+DeviceMotionEvent.requestPermission
+===
+'function'
+) {
 
-                        {};
-
-
-                    const rotation =
-                        event
-                        .rotationRate
-
-                        ||
+const permission =
 
-                        {};
+await
+DeviceMotionEvent
+.requestPermission();
 
 
-                    const sample = {
+if (
+permission
+!==
+'granted'
+) {
 
-                        accel_x:
-                            Number(
-                                accel.x
-                                || 0
-                            ),
+setMessage(
+'Sensor permission denied'
+);
 
-                        accel_y:
-                            Number(
-                                accel.y
-                                || 0
-                            ),
-
-                        accel_z:
-                            Number(
-                                accel.z
-                                || 0
-                            ),
-
-                        gyro_alpha:
-                            Number(
-                                rotation.alpha
-                                || 0
-                            ),
-
-                        gyro_beta:
-                            Number(
-                                rotation.beta
-                                || 0
-                            ),
-
-                        gyro_gamma:
-                            Number(
-                                rotation.gamma
-                                || 0
-                            ),
-
-                        timestamp_ms:
-                            Date.now()
-                    };
-
-
-                    ax.textContent =
-                        sample
-                        .accel_x
-                        .toFixed(2);
-
-                    ay.textContent =
-                        sample
-                        .accel_y
-                        .toFixed(2);
-
-                    az.textContent =
-                        sample
-                        .accel_z
-                        .toFixed(2);
-
-
-                    ga.textContent =
-                        sample
-                        .gyro_alpha
-                        .toFixed(2);
-
-                    gb.textContent =
-                        sample
-                        .gyro_beta
-                        .toFixed(2);
 
-                    gg.textContent =
-                        sample
-                        .gyro_gamma
-                        .toFixed(2);
-
-
-                    addHistory(
-                        S.accHistory,
-                        [
-                            sample.accel_x,
-                            sample.accel_y,
-                            sample.accel_z
-                        ]
-                    );
+setTriggerValue(
 
+'sensor_status',
 
-                    addHistory(
-                        S.gyroHistory,
-                        [
-                            sample.gyro_alpha,
-                            sample.gyro_beta,
-                            sample.gyro_gamma
-                        ]
-                    );
+{
 
+status:
+'DENIED',
 
-                    if (S.workout) {
+ts:
+Date.now()
 
-                        S.buffer.push(
-                            sample
-                        );
+}
 
+);
 
-                        const now =
-                            Date.now();
 
+return;
 
-                        if (
-                            S.buffer.length
-                            >= 20
+}
 
-                            &&
+}
 
-                            now
-                            -
-                            S.lastEmit
-                            >= 1600
-                        ) {
 
-                            setTriggerValue(
-                                'window',
-                                {
-                                    samples:
-                                        S.buffer
-                                        .slice(
-                                            -100
-                                        ),
-                                    ts:
-                                        now
-                                }
-                            );
+if (!S.listener) {
 
+S.listener =
+event => {
 
-                            S.buffer =
-                                S.buffer
-                                .slice(
-                                    -6
-                                );
 
+const accel =
 
-                            S.lastEmit =
-                                now;
-                        }
-                    }
-                };
+event.accelerationIncludingGravity
 
+||
 
-            window.addEventListener(
-                'devicemotion',
-                S.listener,
-                {
-                    passive: true
-                }
-            );
-        }
+event.acceleration
 
+||
 
-        S.enabled = true;
+{};
 
-        setLive(true);
 
-        enableButton.disabled = true;
+const rotation =
 
-        enableButton.textContent =
-            '✓ Sensor Enabled';
+event.rotationRate
 
+||
 
-        /*
-        AUTO CALIBRATION
-        No separate Calibrate button.
-        */
+{};
 
-        setMessage(
-            'Keep phone still... 3'
-        );
 
+const sample = {
 
-        let seconds = 3;
+accel_x:
+Number(
+accel.x
+||
+0
+),
 
+accel_y:
+Number(
+accel.y
+||
+0
+),
 
-        const timer =
-            setInterval(
-                () => {
+accel_z:
+Number(
+accel.z
+||
+0
+),
 
-                    seconds--;
+gyro_alpha:
+Number(
+rotation.alpha
+||
+0
+),
 
+gyro_beta:
+Number(
+rotation.beta
+||
+0
+),
 
-                    if (seconds > 0) {
+gyro_gamma:
+Number(
+rotation.gamma
+||
+0
+),
 
-                        setMessage(
-                            'Keep phone still... '
-                            +
-                            seconds
-                        );
+timestamp_ms:
+Date.now()
 
-                    } else {
+};
 
-                        clearInterval(
-                            timer
-                        );
 
+ax.textContent =
+sample.accel_x.toFixed(2);
 
-                        S.calibrated =
-                            true;
+ay.textContent =
+sample.accel_y.toFixed(2);
 
+az.textContent =
+sample.accel_z.toFixed(2);
 
-                        startButton.disabled =
-                            false;
 
+ga.textContent =
+sample.gyro_alpha.toFixed(2);
 
-                        setMessage(
-                            'Sensor ready'
-                        );
+gb.textContent =
+sample.gyro_beta.toFixed(2);
 
+gg.textContent =
+sample.gyro_gamma.toFixed(2);
 
-                        setTriggerValue(
-                            'sensor_status',
-                            {
-                                status:
-                                    'READY',
-                                ts:
-                                    Date.now()
-                            }
-                        );
-                    }
 
-                },
-                1000
-            );
+addHistory(
 
+S.accHistory,
 
-        setTriggerValue(
-            'sensor_status',
-            {
-                status:
-                    'LIVE',
-                ts:
-                    Date.now()
-            }
-        );
+[
+sample.accel_x,
+sample.accel_y,
+sample.accel_z
+]
 
-    }
+);
 
-    catch(error) {
 
-        setMessage(
-            'Sensor error'
-        );
+addHistory(
 
+S.gyroHistory,
 
-        setTriggerValue(
-            'sensor_status',
-            {
-                status:
-                    'ERROR',
-                ts:
-                    Date.now()
-            }
-        );
-    }
+[
+sample.gyro_alpha,
+sample.gyro_beta,
+sample.gyro_gamma
+]
+
+);
+
+
+if (S.workout) {
+
+S.buffer.push(
+sample
+);
+
+
+const now =
+Date.now();
+
+
+if (
+
+S.buffer.length
+>=
+20
+
+&&
+
+now
+-
+S.lastEmit
+>=
+1600
+
+) {
+
+setTriggerValue(
+
+'window',
+
+{
+
+samples:
+S.buffer.slice(
+-100
+),
+
+ts:
+now
+
+}
+
+);
+
+
+S.buffer =
+S.buffer.slice(
+-6
+);
+
+
+S.lastEmit =
+now;
+
+}
+
+}
+
+};
+
+
+window.addEventListener(
+
+'devicemotion',
+
+S.listener,
+
+{
+passive:true
+}
+
+);
+
+}
+
+
+S.enabled =
+true;
+
+
+setLive(
+true
+);
+
+
+enableButton.disabled =
+true;
+
+
+enableButton.textContent =
+'✓ Sensor Enabled';
+
+
+setMessage(
+'Keep phone still... 3'
+);
+
+
+let seconds = 3;
+
+
+const timer =
+setInterval(
+() => {
+
+
+seconds--;
+
+
+if (
+seconds > 0
+) {
+
+setMessage(
+'Keep phone still... '
++
+seconds
+);
+
+}
+
+else {
+
+clearInterval(
+timer
+);
+
+
+S.calibrated =
+true;
+
+
+startButton.disabled =
+false;
+
+
+setMessage(
+'Sensor ready'
+);
+
+
+setTriggerValue(
+
+'sensor_status',
+
+{
+
+status:
+'READY',
+
+ts:
+Date.now()
+
+}
+
+);
+
+}
+
+},
+
+1000
+
+);
+
+
+setTriggerValue(
+
+'sensor_status',
+
+{
+
+status:
+'LIVE',
+
+ts:
+Date.now()
+
+}
+
+);
+
+
+}
+
+catch(error) {
+
+setMessage(
+'Sensor error'
+);
+
+
+setTriggerValue(
+
+'sensor_status',
+
+{
+
+status:
+'ERROR',
+
+ts:
+Date.now()
+
+}
+
+);
+
+}
+
 }
 
 
 function startWorkout() {
 
-    if (
-        !S.enabled
-        ||
-        !S.calibrated
-    ) {
-        return;
-    }
+if (
+!S.enabled
+||
+!S.calibrated
+) {
+
+return;
+
+}
 
 
-    S.workout = true;
-
-    S.buffer = [];
-
-    S.lastEmit = 0;
+S.workout =
+true;
 
 
-    startButton.disabled = true;
-
-    endButton.disabled = false;
-
-
-    setMessage(
-        'Workout running'
-    );
+S.buffer =
+[];
 
 
-    setTriggerValue(
-        'session_event',
-        {
-            event:
-                'START',
-            ts:
-                Date.now()
-        }
-    );
+S.lastEmit =
+0;
+
+
+startButton.disabled =
+true;
+
+
+endButton.disabled =
+false;
+
+
+setMessage(
+'Workout running'
+);
+
+
+setTriggerValue(
+
+'session_event',
+
+{
+
+event:
+'START',
+
+ts:
+Date.now()
+
+}
+
+);
+
 }
 
 
 function endWorkout() {
 
-    if (!S.workout) {
-        return;
-    }
+if (!S.workout) {
+
+return;
+
+}
 
 
-    S.workout = false;
+S.workout =
+false;
 
 
-    endButton.disabled = true;
-
-    startButton.disabled = false;
-
-
-    setMessage(
-        'Workout completed'
-    );
+endButton.disabled =
+true;
 
 
-    setTriggerValue(
-        'session_event',
-        {
-            event:
-                'END',
-            ts:
-                Date.now()
-        }
-    );
+startButton.disabled =
+false;
+
+
+setMessage(
+'Workout completed'
+);
+
+
+setTriggerValue(
+
+'session_event',
+
+{
+
+event:
+'END',
+
+ts:
+Date.now()
+
+}
+
+);
+
 }
 
 
 enableButton.addEventListener(
-    'click',
-    enableSensors
+'click',
+enableSensors
 );
 
 
 startButton.addEventListener(
-    'click',
-    startWorkout
+'click',
+startWorkout
 );
 
 
 endButton.addEventListener(
-    'click',
-    endWorkout
+'click',
+endWorkout
 );
 
 }
 
 
 const S =
-    parentElement
-    .__gymSenseState;
+parentElement
+.__gymSenseState;
 
 
 if (
-    data?.workoutRunning
-    === false
-    &&
-    S.workout
+data?.workoutRunning
+===
+false
+&&
+S.workout
 ) {
 
-    S.workout = false;
+S.workout =
+false;
+
 }
 
 
@@ -2572,9 +3220,13 @@ return () => {};
 
 sensor_component = (
     st.components.v2.component(
+
         "gymsense_mobile_sensor",
+
         html=SENSOR_HTML,
+
         css=SENSOR_CSS,
+
         js=SENSOR_JS,
     )
 )
@@ -2584,10 +3236,13 @@ sensor_component = (
 # HEADER
 # ============================================================
 
-header_left, header_right = st.columns(
-    [2.5, 1],
-    vertical_alignment="center",
+header_left, header_right = (
+    st.columns(
+        [2.5, 1],
+        vertical_alignment="center",
+    )
 )
+
 
 with header_left:
 
@@ -2598,17 +3253,27 @@ with header_left:
 <div>
 
 <div class="gs-brand">
-GymSense <span>AI</span>
+
+GymSense
+<span>
+AI
+</span>
+
 </div>
 
 <div class="gs-sub">
+
 Phone Motion Workout Recognition
+
 </div>
 
 </div>
 
 <div class="status-pill">
-● {st.session_state.sensor_status}
+
+●
+{st.session_state.sensor_status}
+
 </div>
 
 </div>
@@ -2626,24 +3291,34 @@ with header_right:
 
         switch = st.button(
             "↔ Avatar",
+
             use_container_width=True,
+
             disabled=
                 st.session_state
                 .workout_running,
         )
 
+
         if switch:
 
             st.session_state.avatar = None
-            st.session_state.current_activity = "READY"
-            st.session_state.current_confidence = None
+
+            st.session_state.current_activity = (
+                "READY"
+            )
+
+            st.session_state.current_confidence = (
+                None
+            )
+
             st.session_state.recent = []
 
             st.rerun()
 
 
 # ============================================================
-# AVATAR SELECTION
+# AVATAR CHOOSER
 # ============================================================
 
 if st.session_state.avatar is None:
@@ -2653,21 +3328,28 @@ if st.session_state.avatar is None:
 <div class="gs-card">
 
 <div class="gs-section-title">
+
 CHOOSE AVATAR
+
 </div>
 
 <div style="
 font-size:1.25rem;
 font-weight:950;
 ">
+
 Select Your Workout Avatar
+
 </div>
 
 <div style="
 font-size:.68rem;
 color:#879bb9;
 ">
-Avatar selection changes only the visual character.
+
+Avatar selection changes
+only the visual character.
+
 </div>
 
 </div>
@@ -2692,14 +3374,18 @@ Avatar selection changes only the visual character.
             "default.png"
         )
 
+
         show_avatar_preview(
             female,
             "Female"
         )
 
+
         if st.button(
             "Female",
+
             use_container_width=True,
+
             type="primary",
         ):
 
@@ -2718,13 +3404,16 @@ Avatar selection changes only the visual character.
             "default.png"
         )
 
+
         show_avatar_preview(
             male,
             "Male"
         )
 
+
         if st.button(
             "Male",
+
             use_container_width=True,
         ):
 
@@ -2739,7 +3428,7 @@ Avatar selection changes only the visual character.
 
 
 # ============================================================
-# LIVE ACTIVITY PANEL
+# LIVE ACTIVITY
 # ============================================================
 
 st.markdown(
@@ -2757,6 +3446,7 @@ activity = (
     st.session_state
     .current_activity
 )
+
 
 confidence = (
     st.session_state
@@ -2791,6 +3481,7 @@ Confidence:
         unsafe_allow_html=True,
     )
 
+
 else:
 
     st.markdown(
@@ -2807,6 +3498,7 @@ Waiting for sensor prediction
 
 elapsed = current_elapsed()
 
+
 current_reps = (
     st.session_state
     .rep_totals
@@ -2817,6 +3509,7 @@ current_reps = (
     if activity in REPETITIVE
     else 0
 )
+
 
 current_sets = (
     st.session_state
@@ -2879,7 +3572,7 @@ SETS
 
 
 # ============================================================
-# SENSOR PANEL
+# SENSOR
 # ============================================================
 
 sensor_result = sensor_component(
@@ -2889,22 +3582,27 @@ sensor_result = sensor_component(
                 st.session_state
                 .workout_running
             ),
+
         "prediction":
             st.session_state
             .current_activity,
     },
+
     key="gym-phone-sensor",
+
     on_sensor_status_change=
         lambda: None,
+
     on_session_event_change=
         lambda: None,
+
     on_window_change=
         lambda: None,
 )
 
 
 # ============================================================
-# SENSOR STATUS EVENT
+# SENSOR STATUS
 # ============================================================
 
 sensor_status_event = getattr(
@@ -2912,6 +3610,7 @@ sensor_status_event = getattr(
     "sensor_status",
     None,
 )
+
 
 if sensor_status_event:
 
@@ -2922,11 +3621,13 @@ if sensor_status_event:
         )
     ).upper()
 
+
     if status == "LIVE":
 
         st.session_state.sensor_status = (
             "LIVE"
         )
+
 
     elif status == "READY":
 
@@ -2938,6 +3639,7 @@ if sensor_status_event:
             True
         )
 
+
     elif status:
 
         st.session_state.sensor_status = (
@@ -2946,7 +3648,7 @@ if sensor_status_event:
 
 
 # ============================================================
-# START / END EVENT
+# START / END
 # ============================================================
 
 session_event = getattr(
@@ -2954,6 +3656,7 @@ session_event = getattr(
     "session_event",
     None,
 )
+
 
 if session_event:
 
@@ -2964,30 +3667,38 @@ if session_event:
         )
     ).upper()
 
+
     if (
         event == "START"
+
         and
+
         not
         st.session_state
         .workout_running
     ):
 
         start_workout()
+
         st.rerun()
+
 
     elif (
         event == "END"
+
         and
+
         st.session_state
         .workout_running
     ):
 
         end_workout()
+
         st.rerun()
 
 
 # ============================================================
-# ML WINDOW
+# SENSOR WINDOW -> ML
 # ============================================================
 
 sensor_window = getattr(
@@ -2996,12 +3707,17 @@ sensor_window = getattr(
     None,
 )
 
+
 if (
     sensor_window
+
     and
+
     st.session_state
     .workout_running
+
     and
+
     isinstance(
         sensor_window.get(
             "samples"
@@ -3010,9 +3726,12 @@ if (
     )
 ):
 
-    records = sensor_window[
-        "samples"
-    ]
+    records = (
+        sensor_window[
+            "samples"
+        ]
+    )
+
 
     if len(records) >= 10:
 
@@ -3021,9 +3740,11 @@ if (
             predicted_confidence,
             confidence_label,
             raw_prediction,
+
         ) = predict_activity(
             records
         )
+
 
         predicted_activity = (
             smooth_prediction(
@@ -3031,32 +3752,38 @@ if (
             )
         )
 
+
         st.session_state.current_confidence = (
             predicted_confidence
         )
+
 
         st.session_state.confidence_label = (
             confidence_label
         )
 
+
         st.session_state.raw_prediction = (
             raw_prediction
         )
 
+
         change_activity(
             predicted_activity
         )
+
 
         update_reps(
             records,
             predicted_activity,
         )
 
+
         st.rerun()
 
 
 # ============================================================
-# COMPACT HISTORY
+# ACTIVITY HISTORY
 # ============================================================
 
 st.markdown(
@@ -3071,15 +3798,20 @@ st.markdown(
 history_rows = []
 
 
-# LIVE CURRENT ACTIVITY FIRST
+# LIVE ACTIVITY
 
 if (
     st.session_state.workout_running
+
     and
+
     st.session_state.activity_started
+
     and
+
     st.session_state.current_activity
-    != "READY"
+    !=
+    "READY"
 ):
 
     start_time = (
@@ -3087,26 +3819,29 @@ if (
         .activity_started
     )
 
-    activity = (
+
+    current_activity = (
         st.session_state
         .current_activity
     )
+
 
     live_reps = (
         st.session_state
         .rep_totals
         .get(
-            activity,
+            current_activity,
             0
         )
-        if activity in REPETITIVE
+        if current_activity in REPETITIVE
         else 0
     )
+
 
     history_rows.append(
         {
             "Exercise":
-                activity,
+                current_activity,
 
             "Start":
                 time.strftime(
@@ -3127,22 +3862,30 @@ if (
                 ),
 
             "Reps":
-                live_reps
-                if activity in REPETITIVE
-                else "—",
+                (
+                    live_reps
+                    if
+                    current_activity
+                    in
+                    REPETITIVE
+                    else
+                    "—"
+                ),
 
             "Confidence":
                 (
                     f"{st.session_state.current_confidence * 100:.0f}%"
-                    if st.session_state.current_confidence
+                    if
+                    st.session_state.current_confidence
                     is not None
-                    else "—"
+                    else
+                    "—"
                 ),
         }
     )
 
 
-# COMPLETED ACTIVITIES
+# COMPLETED HISTORY
 
 for item in reversed(
     st.session_state.history[
@@ -3179,16 +3922,20 @@ for item in reversed(
             "Reps":
                 (
                     item["reps"]
-                    if item["reps"]
-                    else "—"
+                    if
+                    item["reps"]
+                    else
+                    "—"
                 ),
 
             "Confidence":
                 (
                     f"{item['confidence'] * 100:.0f}%"
-                    if item["confidence"]
+                    if
+                    item["confidence"]
                     is not None
-                    else "—"
+                    else
+                    "—"
                 ),
         }
     )
@@ -3200,14 +3947,21 @@ if history_rows:
         pd.DataFrame(
             history_rows
         ),
+
         use_container_width=True,
+
         hide_index=True,
+
         height=min(
             225,
-            38 +
-            len(history_rows) * 34,
+            38
+            +
+            len(history_rows)
+            *
+            34,
         ),
     )
+
 
 else:
 
@@ -3227,19 +3981,24 @@ if st.session_state.summary:
         st.session_state.summary
     )
 
+
     st.markdown(
         """
 <div class="gs-card">
 
 <div class="gs-section-title">
+
 WORKOUT COMPLETE
+
 </div>
 
 <div style="
 font-size:1.05rem;
 font-weight:950;
 ">
+
 🏆 Session Summary
+
 </div>
 
 </div>
@@ -3247,33 +4006,52 @@ font-weight:950;
         unsafe_allow_html=True,
     )
 
-    col1, col2 = st.columns(2)
+
+    col1, col2 = (
+        st.columns(2)
+    )
+
 
     col1.metric(
         "Workout Time",
         format_duration(
-            summary["duration"]
+            summary[
+                "duration"
+            ]
         ),
     )
+
 
     col2.metric(
         "Active Time",
         format_duration(
-            summary["active"]
+            summary[
+                "active"
+            ]
         ),
     )
 
-    col3, col4 = st.columns(2)
+
+    col3, col4 = (
+        st.columns(2)
+    )
+
 
     col3.metric(
         "Total Reps",
-        summary["reps"],
+        summary[
+            "reps"
+        ],
     )
+
 
     col4.metric(
         "Total Sets",
-        summary["sets"],
+        summary[
+            "sets"
+        ],
     )
+
 
     if summary["activities"]:
 
