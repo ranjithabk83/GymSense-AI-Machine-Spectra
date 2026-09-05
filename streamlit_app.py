@@ -1,687 +1,3719 @@
-"""
-GymSense AI - Streamlit Competition Dashboard
-Student: Ranjitha B K
-USN: 1SB24AI041
-Branch: Artificial Intelligence and Machine Learning
-Event: MACHINE SPECTRA 1.0
-
-IMPORTANT:
-This Streamlit app is a competition/ML dashboard for the existing GymSense AI project.
-The full phone-sensor PWA (DeviceMotion + FastAPI + installable app) should remain on
-an HTTPS FastAPI deployment such as Render.
-"""
-
 from __future__ import annotations
 
+import base64
 import json
-import os
+import mimetypes
+import time
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
 import joblib
+import numpy as np
 import pandas as pd
 import streamlit as st
 
+from feature_extraction import extract_features_from_records, get_feature_names
 
-# ---------------------------------------------------------------------
+
+# ============================================================
 # PAGE
-# ---------------------------------------------------------------------
+# ============================================================
 
 st.set_page_config(
     page_title="GymSense AI",
     page_icon="💪",
-    layout="wide",
+    layout="centered",
     initial_sidebar_state="collapsed",
 )
 
-BASE_DIR = Path(__file__).resolve().parent
-MODELS_DIR = BASE_DIR / "models"
-DATA_DIR = BASE_DIR / "data"
+BASE = Path(__file__).resolve().parent
+MODELS = BASE / "models"
+AVATARS = BASE / "assets" / "avatars"
 
-MODEL_PATH = MODELS_DIR / "exercise_classifier.pkl"
-SCALER_PATH = MODELS_DIR / "scaler.pkl"
-ENCODER_PATH = MODELS_DIR / "label_encoder.pkl"
-METADATA_PATH = MODELS_DIR / "model_metadata.json"
-DATASET_PATH = DATA_DIR / "sensor_data.csv"
+REST_THRESHOLD = 0.12
+LOW_CONFIDENCE = 0.20
+SMOOTH_WINDOW = 3
 
 
-# ---------------------------------------------------------------------
-# STYLE
-# ---------------------------------------------------------------------
+REPETITIVE = {
+    "BICEP CURL",
+    "HAMMER CURL",
+    "SQUAT",
+    "LUNGE",
+    "JUMPING JACK",
+    "SHOULDER PRESS",
+    "FRONT RAISE",
+    "LATERAL RAISE",
+}
+
+
+ACTIVITY_SLUG = {
+    "READY": "rest",
+    "REST": "rest",
+    "WALKING": "walking",
+    "RUNNING": "running",
+    "BICEP CURL": "bicep_curl",
+    "HAMMER CURL": "hammer_curl",
+    "SQUAT": "squat",
+    "LUNGE": "lunge",
+    "JUMPING JACK": "jumping_jack",
+    "SHOULDER PRESS": "shoulder_press",
+    "FRONT RAISE": "front_raise",
+    "LATERAL RAISE": "lateral_raise",
+    "WORKOUT": "workout",
+}
+
+
+ACTIVITY_EMOJI = {
+    "READY": "⚡",
+    "REST": "🧘",
+    "WALKING": "🚶",
+    "RUNNING": "🏃",
+    "BICEP CURL": "💪",
+    "HAMMER CURL": "🏋️",
+    "SQUAT": "🏋️",
+    "LUNGE": "🦵",
+    "JUMPING JACK": "⭐",
+    "SHOULDER PRESS": "🏋️",
+    "FRONT RAISE": "💪",
+    "LATERAL RAISE": "💪",
+    "WORKOUT": "🔥",
+}
+
+
+# ============================================================
+# MOBILE CSS
+# ============================================================
 
 st.markdown(
     """
-    <style>
-        .stApp {
-            background:
-                radial-gradient(circle at 10% 0%, rgba(101, 72, 255, .16), transparent 28rem),
-                radial-gradient(circle at 90% 10%, rgba(255, 55, 148, .12), transparent 25rem),
-                #07101f;
-            color: #f5f7fb;
-        }
+<style>
 
-        [data-testid="stHeader"] {
-            background: transparent;
-        }
+html, body, [class*="css"] {
+    font-family: Inter, system-ui, sans-serif;
+}
 
-        [data-testid="stSidebar"] {
-            background: #081426;
-        }
+.stApp {
+    background:
+        radial-gradient(
+            circle at 10% 0%,
+            rgba(67,87,255,.18),
+            transparent 22rem
+        ),
+        radial-gradient(
+            circle at 95% 0%,
+            rgba(255,58,151,.15),
+            transparent 22rem
+        ),
+        #07101f;
+}
 
-        .block-container {
-            max-width: 1180px;
-            padding-top: 2rem;
-            padding-bottom: 3rem;
-        }
+[data-testid="stHeader"] {
+    background: transparent;
+}
 
-        .gs-hero {
-            border: 1px solid rgba(255,255,255,.09);
-            border-radius: 26px;
-            padding: 28px;
-            background:
-                linear-gradient(135deg, rgba(17,39,74,.94), rgba(12,20,46,.94));
-            margin-bottom: 18px;
-        }
-
-        .gs-kicker {
-            color: #ff6eb4;
-            font-size: .78rem;
-            font-weight: 800;
-            letter-spacing: .15em;
-            text-transform: uppercase;
-        }
-
-        .gs-title {
-            font-size: clamp(2.2rem, 6vw, 4.1rem);
-            line-height: .98;
-            font-weight: 900;
-            margin-top: 8px;
-            margin-bottom: 10px;
-        }
-
-        .gs-sub {
-            color: #a9b7ce;
-            max-width: 760px;
-            line-height: 1.7;
-        }
-
-        .gs-pill {
-            display: inline-block;
-            margin-top: 14px;
-            margin-right: 8px;
-            border: 1px solid rgba(255,255,255,.10);
-            background: rgba(255,255,255,.05);
-            border-radius: 999px;
-            padding: 7px 12px;
-            color: #dbe4f4;
-            font-size: .82rem;
-        }
-
-        .gs-card {
-            border: 1px solid rgba(255,255,255,.08);
-            border-radius: 20px;
-            padding: 20px;
-            background: rgba(255,255,255,.035);
-            min-height: 100%;
-        }
-
-        .gs-card h3 {
-            margin-top: 0;
-            margin-bottom: 6px;
-        }
-
-        .gs-muted {
-            color: #97a9c2;
-        }
-
-        .gs-flow {
-            text-align: center;
-            font-weight: 800;
-            line-height: 2.05;
-            border: 1px solid rgba(255,255,255,.08);
-            border-radius: 22px;
-            padding: 22px 12px;
-            background: rgba(7, 18, 39, .72);
-        }
-
-        .gs-arrow {
-            color: #ff67ad;
-        }
-
-        div[data-testid="stMetric"] {
-            border: 1px solid rgba(255,255,255,.08);
-            background: rgba(255,255,255,.035);
-            border-radius: 18px;
-            padding: 15px;
-        }
-
-        .stTabs [data-baseweb="tab-list"] {
-            gap: 8px;
-        }
-
-        .stTabs [data-baseweb="tab"] {
-            height: 44px;
-            border-radius: 12px;
-            padding-left: 15px;
-            padding-right: 15px;
-            background: rgba(255,255,255,.035);
-        }
-
-        .stTabs [aria-selected="true"] {
-            background: rgba(255, 73, 162, .12) !important;
-        }
-
-        .gs-warning {
-            border: 1px solid rgba(255, 192, 83, .25);
-            background: rgba(255, 192, 83, .07);
-            border-radius: 16px;
-            padding: 14px 16px;
-            color: #f4d59a;
-            margin: 10px 0 18px 0;
-        }
-
-        .gs-success {
-            border: 1px solid rgba(73, 222, 153, .24);
-            background: rgba(73, 222, 153, .07);
-            border-radius: 16px;
-            padding: 14px 16px;
-            color: #a8f1cc;
-            margin: 10px 0 18px 0;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+.block-container {
+    max-width: 620px !important;
+    padding-top: .6rem !important;
+    padding-left: .7rem !important;
+    padding-right: .7rem !important;
+    padding-bottom: 2rem !important;
+}
 
 
-# ---------------------------------------------------------------------
-# LOADERS
-# ---------------------------------------------------------------------
+/* HEADER */
 
-@st.cache_resource
-def load_model_bundle() -> dict[str, Any]:
-    bundle: dict[str, Any] = {
-        "model": None,
-        "scaler": None,
-        "encoder": None,
-        "metadata": {},
-        "error": None,
+.gs-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.gs-brand {
+    font-size: 1.28rem;
+    font-weight: 950;
+    letter-spacing: -.04em;
+}
+
+.gs-brand span {
+    color: #ff59aa;
+}
+
+.gs-sub {
+    color: #879bb9;
+    font-size: .68rem;
+    margin-top: -2px;
+}
+
+.status-pill {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(52,224,156,.08);
+    border: 1px solid rgba(52,224,156,.25);
+    color: #52e2a5;
+    font-size: .62rem;
+    font-weight: 900;
+}
+
+
+/* CARD */
+
+.gs-card {
+    border: 1px solid rgba(255,255,255,.08);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(14,29,53,.96),
+            rgba(7,17,33,.97)
+        );
+
+    border-radius: 17px;
+    padding: 10px;
+    margin-bottom: 8px;
+}
+
+.gs-section-title {
+    color: #8ea4c3;
+    font-size: .63rem;
+    letter-spacing: .13em;
+    font-weight: 900;
+    margin-bottom: 3px;
+}
+
+
+/* AVATAR CHOOSER */
+
+.avatar-preview {
+    width: 100%;
+    max-width: 165px;
+    height: 155px;
+
+    margin:
+        0 auto 5px auto;
+
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+
+    overflow: hidden;
+
+    border-radius: 16px;
+
+    border:
+        1px solid
+        rgba(255,255,255,.08);
+
+    background:
+        radial-gradient(
+            circle at 50% 40%,
+            rgba(255,80,170,.15),
+            transparent 55%
+        ),
+        #09182d;
+}
+
+.avatar-preview img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+    object-position: center bottom;
+}
+
+
+/* LIVE AVATAR */
+
+.avatar-stage {
+    width: 100%;
+    max-width: 220px;
+    height: 205px;
+
+    margin: 0 auto;
+
+    position: relative;
+
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+
+    overflow: hidden;
+
+    border-radius: 18px;
+
+    border:
+        1px solid
+        rgba(255,255,255,.08);
+
+    background:
+        radial-gradient(
+            circle at 50% 35%,
+            rgba(96,73,255,.20),
+            transparent 55%
+        ),
+        #09172b;
+}
+
+.avatar-stage img {
+    max-width: 95%;
+    max-height: 92%;
+
+    width: auto;
+    height: auto;
+
+    object-fit: contain;
+    object-position: center bottom;
+
+    transform-origin: 50% 92%;
+    will-change: transform;
+}
+
+
+/* EXERCISE NAME INSIDE AVATAR */
+
+.activity-overlay {
+    position: absolute;
+
+    top: 7px;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    z-index: 4;
+
+    min-width: 110px;
+
+    padding: 5px 9px;
+
+    border-radius: 999px;
+
+    text-align: center;
+
+    font-size: .75rem;
+    font-weight: 950;
+
+    color: white;
+
+    background:
+        rgba(5,14,29,.82);
+
+    border:
+        1px solid
+        rgba(255,255,255,.12);
+
+    backdrop-filter:
+        blur(8px);
+}
+
+
+.activity-name {
+    text-align: center;
+
+    margin-top: 5px;
+
+    font-size: 1.35rem;
+
+    line-height: 1;
+
+    font-weight: 950;
+
+    letter-spacing: -.04em;
+}
+
+.confidence {
+    text-align: center;
+
+    color: #8fa4c2;
+
+    font-size: .67rem;
+
+    margin-top: 3px;
+}
+
+
+/* METRICS */
+
+.metric-row {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 6px;
+
+    margin-top: 7px;
+}
+
+.mini-metric {
+    text-align: center;
+
+    background:
+        rgba(255,255,255,.035);
+
+    border:
+        1px solid
+        rgba(255,255,255,.07);
+
+    border-radius: 12px;
+
+    padding: 6px 3px;
+}
+
+.mini-metric-label {
+    color: #8296b4;
+
+    font-size: .56rem;
+
+    font-weight: 800;
+}
+
+.mini-metric-value {
+    color: white;
+
+    font-size: .92rem;
+
+    font-weight: 950;
+
+    margin-top: 1px;
+}
+
+
+/* BUTTON */
+
+div.stButton > button {
+    min-height: 37px !important;
+
+    padding:
+        4px 7px !important;
+
+    border-radius:
+        11px !important;
+
+    font-size:
+        .72rem !important;
+
+    font-weight:
+        850 !important;
+}
+
+
+/* ANIMATION */
+
+.motion-walking img {
+    animation:
+        walk .56s ease-in-out infinite alternate;
+}
+
+.motion-running img {
+    animation:
+        run .32s ease-in-out infinite alternate;
+}
+
+.motion-squat img {
+    animation:
+        squat .9s ease-in-out infinite;
+}
+
+.motion-bicep-curl img,
+.motion-hammer-curl img {
+    animation:
+        curl .72s ease-in-out infinite alternate;
+}
+
+.motion-lunge img {
+    animation:
+        lunge .9s ease-in-out infinite alternate;
+}
+
+.motion-jumping-jack img {
+    animation:
+        jump .62s ease-in-out infinite;
+}
+
+.motion-shoulder-press img,
+.motion-front-raise img,
+.motion-lateral-raise img {
+    animation:
+        lift .76s ease-in-out infinite alternate;
+}
+
+.motion-workout img {
+    animation:
+        workout .65s ease-in-out infinite alternate;
+}
+
+.motion-rest img {
+    animation:
+        breathe 2s ease-in-out infinite;
+}
+
+
+@keyframes walk {
+
+    0% {
+        transform:
+            translate(-7px,0)
+            rotate(-1.5deg);
     }
 
-    try:
-        if MODEL_PATH.exists():
-            bundle["model"] = joblib.load(MODEL_PATH)
+    50% {
+        transform:
+            translate(0,-7px)
+            rotate(1.5deg);
+    }
 
-        if SCALER_PATH.exists():
-            bundle["scaler"] = joblib.load(SCALER_PATH)
-
-        if ENCODER_PATH.exists():
-            bundle["encoder"] = joblib.load(ENCODER_PATH)
-
-        if METADATA_PATH.exists():
-            bundle["metadata"] = json.loads(
-                METADATA_PATH.read_text(encoding="utf-8")
-            )
-
-    except Exception as exc:
-        bundle["error"] = str(exc)
-
-    return bundle
+    100% {
+        transform:
+            translate(7px,0)
+            rotate(-1deg);
+    }
+}
 
 
-@st.cache_data
-def load_dataset_summary() -> dict[str, Any]:
-    if not DATASET_PATH.exists():
-        return {
-            "exists": False,
-            "rows": 0,
-            "columns": 0,
-            "activities": [],
-            "counts": pd.DataFrame(),
-        }
+@keyframes run {
 
-    try:
-        df = pd.read_csv(DATASET_PATH)
+    0% {
+        transform:
+            translate(-9px,1px)
+            rotate(-3deg);
+    }
 
-        activity_col = None
-        for candidate in ("activity", "label", "exercise", "class"):
-            if candidate in df.columns:
-                activity_col = candidate
-                break
-
-        activities: list[str] = []
-        counts = pd.DataFrame()
-
-        if activity_col:
-            activities = sorted(
-                df[activity_col].dropna().astype(str).unique().tolist()
-            )
-            counts = (
-                df[activity_col]
-                .astype(str)
-                .value_counts()
-                .rename_axis("Activity")
-                .reset_index(name="Samples")
-            )
-
-        return {
-            "exists": True,
-            "rows": int(len(df)),
-            "columns": int(len(df.columns)),
-            "activities": activities,
-            "counts": counts,
-        }
-
-    except Exception as exc:
-        return {
-            "exists": True,
-            "rows": 0,
-            "columns": 0,
-            "activities": [],
-            "counts": pd.DataFrame(),
-            "error": str(exc),
-        }
+    100% {
+        transform:
+            translate(9px,-9px)
+            rotate(3deg);
+    }
+}
 
 
-bundle = load_model_bundle()
-metadata = bundle["metadata"] or {}
-dataset = load_dataset_summary()
+@keyframes squat {
+
+    0%,
+    100% {
+        transform:
+            translateY(0);
+    }
+
+    50% {
+        transform:
+            translateY(23px)
+            scaleY(.96);
+    }
+}
 
 
-# ---------------------------------------------------------------------
-# HELPERS
-# ---------------------------------------------------------------------
+@keyframes curl {
 
-def percentage(value: Any) -> str:
-    if value is None:
-        return "—"
+    0% {
+        transform:
+            translateY(0)
+            rotate(-2deg);
+    }
 
-    try:
-        number = float(value)
-        if 0 <= number <= 1:
-            number *= 100
-        return f"{number:.2f}%"
-    except (TypeError, ValueError):
-        return "—"
-
-
-def get_live_app_url() -> str:
-    # Recommended: add GYMSENSE_APP_URL in Streamlit Cloud Secrets.
-    try:
-        secret_value = st.secrets.get("GYMSENSE_APP_URL", "")
-    except Exception:
-        secret_value = ""
-
-    return (
-        str(secret_value).strip()
-        or os.getenv("GYMSENSE_APP_URL", "").strip()
-    )
+    100% {
+        transform:
+            translateY(-8px)
+            rotate(2deg);
+    }
+}
 
 
-# ---------------------------------------------------------------------
-# HERO
-# ---------------------------------------------------------------------
+@keyframes lunge {
 
-st.markdown(
-    """
-    <div class="gs-hero">
-        <div class="gs-kicker">MACHINE SPECTRA 1.0 • AIML MINI PROJECT</div>
-        <div class="gs-title">GymSense <span style="color:#ff63ad;">AI</span></div>
-        <div class="gs-sub">
-            AI-powered workout activity recognition using smartphone
-            accelerometer and gyroscope data. Sensor windows are converted
-            into engineered features and classified by a trained machine-learning model.
-        </div>
-        <span class="gs-pill">📱 Phone Motion Sensors</span>
-        <span class="gs-pill">🧠 Machine Learning</span>
-        <span class="gs-pill">⚡ Real-Time Recognition</span>
-        <span class="gs-pill">📊 Activity Analytics</span>
-    </div>
-    """,
+    0% {
+        transform:
+            translate(-5px,0);
+    }
+
+    100% {
+        transform:
+            translate(6px,13px);
+    }
+}
+
+
+@keyframes jump {
+
+    0%,
+    100% {
+        transform:
+            translateY(0);
+    }
+
+    50% {
+        transform:
+            translateY(-18px)
+            scale(1.02);
+    }
+}
+
+
+@keyframes lift {
+
+    0% {
+        transform:
+            translateY(0)
+            rotate(-1deg);
+    }
+
+    100% {
+        transform:
+            translateY(-9px)
+            rotate(1deg);
+    }
+}
+
+
+@keyframes workout {
+
+    0% {
+        transform:
+            translateY(0)
+            rotate(-2deg);
+    }
+
+    100% {
+        transform:
+            translateY(-7px)
+            rotate(2deg);
+    }
+}
+
+
+@keyframes breathe {
+
+    0%,
+    100% {
+        transform:
+            scale(1);
+    }
+
+    50% {
+        transform:
+            scale(1.012);
+    }
+}
+
+
+/* PHONE */
+
+@media(max-width: 480px) {
+
+    .block-container {
+        padding-left: .45rem !important;
+        padding-right: .45rem !important;
+    }
+
+    .avatar-preview {
+        max-width: 145px;
+        height: 137px;
+    }
+
+    .avatar-stage {
+        max-width: 195px;
+        height: 182px;
+    }
+
+    .activity-name {
+        font-size: 1.15rem;
+    }
+
+    .mini-metric-value {
+        font-size: .82rem;
+    }
+}
+
+</style>
+""",
     unsafe_allow_html=True,
 )
 
-student = metadata.get("student", {})
-c1, c2, c3, c4 = st.columns(4)
-c1.metric("Student", student.get("name", "Ranjitha B K"))
-c2.metric("USN", student.get("usn", "1SB24AI041"))
-c3.metric("Selected Model", metadata.get("selected_model", "Random Forest"))
-c4.metric("Exercise Classes", len(metadata.get("classes", [])) or "—")
+
+# ============================================================
+# STATE
+# ============================================================
+
+DEFAULTS = {
+    "avatar": None,
+    "sensor_status": "OFF",
+    "calibrated": False,
+    "workout_running": False,
+    "workout_start": None,
+    "current_activity": "READY",
+    "current_confidence": None,
+    "confidence_label": "",
+    "raw_prediction": None,
+    "recent": [],
+    "activity_started": None,
+    "history": [],
+    "rep_totals": {},
+    "set_totals": {},
+    "last_rep_ts": {},
+    "segment_rep_start": 0,
+    "last_non_rest": None,
+    "summary": None,
+}
+
+for key, value in DEFAULTS.items():
+    st.session_state.setdefault(key, value)
 
 
-# ---------------------------------------------------------------------
-# TABS
-# ---------------------------------------------------------------------
+# ============================================================
+# LOAD MODEL
+# ============================================================
 
-tab_home, tab_model, tab_data, tab_flow, tab_live = st.tabs(
-    [
-        "🏠 Overview",
-        "🧠 ML Model",
-        "📊 Dataset",
-        "⚙️ How It Works",
-        "📱 Live Phone App",
-    ]
-)
+@st.cache_resource
+def load_ml():
 
+    model = joblib.load(
+        MODELS / "exercise_classifier.pkl"
+    )
 
-# ---------------------------------------------------------------------
-# OVERVIEW
-# ---------------------------------------------------------------------
+    scaler = joblib.load(
+        MODELS / "scaler.pkl"
+    )
 
-with tab_home:
-    left, right = st.columns([1.35, 1])
+    encoder = joblib.load(
+        MODELS / "label_encoder.pkl"
+    )
 
-    with left:
-        st.markdown("### Project objective")
-        st.write(
-            "GymSense AI recognizes the activity being performed by analysing "
-            "motion patterns from a phone's accelerometer and gyroscope. "
-            "Known activities are classified by ML; low-confidence movement "
-            "can fall back to **WORKOUT**, while inactivity is treated as **REST**."
+    metadata = {}
+
+    metadata_path = (
+        MODELS /
+        "model_metadata.json"
+    )
+
+    if metadata_path.exists():
+
+        metadata = json.loads(
+            metadata_path.read_text(
+                encoding="utf-8"
+            )
         )
 
-        classes = metadata.get("classes", [])
-        if classes:
-            st.markdown("### Trained activity classes")
-            st.write(" • ".join(classes))
+    feature_names = (
+        metadata.get("feature_names")
+        or get_feature_names()
+    )
 
-    with right:
-        st.markdown(
-            """
-            <div class="gs-card">
-                <h3>Competition Demo</h3>
-                <div class="gs-muted">
-                    Open app → choose avatar → enable sensors → calibrate →
-                    start workout → perform exercises → watch prediction,
-                    animation, reps and duration → end workout → show history
-                    and ML evaluation.
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+    return (
+        model,
+        scaler,
+        encoder,
+        feature_names,
+    )
+
+
+# ============================================================
+# PREDICTION
+# ============================================================
+
+def predict_activity(
+    records: list[dict[str, Any]]
+):
+
+    (
+        model,
+        scaler,
+        encoder,
+        names,
+    ) = load_ml()
+
+    features = extract_features_from_records(
+        records
+    )
+
+    x = np.array(
+        [[
+            float(
+                features.get(
+                    name,
+                    0.0
+                )
+            )
+            for name in names
+        ]],
+        dtype=float,
+    )
+
+    x = scaler.transform(x)
+
+    confidence = None
+    probabilities = {}
+
+    if hasattr(
+        model,
+        "predict_proba"
+    ):
+
+        probs = model.predict_proba(x)[0]
+
+        class_ids = getattr(
+            model,
+            "classes_",
+            np.arange(
+                len(probs)
+            )
         )
 
-    st.markdown("### Saved model configuration")
+        labels = []
 
-    a, b, c, d = st.columns(4)
-    a.metric(
-        "Sampling rate",
-        f"{metadata.get('sampling_rate_hz', '—')} Hz",
-    )
-    b.metric(
-        "Window duration",
-        f"{metadata.get('window_duration_seconds', '—')} s",
-    )
-    c.metric(
-        "Features",
-        metadata.get("total_features", "—"),
-    )
-    d.metric(
-        "Training windows",
-        metadata.get("total_training_windows", "—"),
-    )
+        for class_id in class_ids:
 
-    if bundle["error"]:
-        st.error(f"Model loading issue: {bundle['error']}")
-    elif bundle["model"] is not None:
-        st.markdown(
-            '<div class="gs-success">✓ Trained ML model files are available in this deployment.</div>',
-            unsafe_allow_html=True,
+            label = str(
+                encoder.inverse_transform(
+                    [int(class_id)]
+                )[0]
+            )
+
+            label = (
+                label
+                .upper()
+                .replace("_", " ")
+            )
+
+            labels.append(label)
+
+        best_index = int(
+            np.argmax(probs)
         )
+
+        raw_prediction = labels[
+            best_index
+        ]
+
+        confidence = float(
+            probs[
+                best_index
+            ]
+        )
+
+        probabilities = {
+            label: float(probability)
+            for label, probability
+            in zip(
+                labels,
+                probs
+            )
+        }
+
     else:
-        st.markdown(
-            '<div class="gs-warning">Model file is not available. Ensure the models/ folder is pushed to GitHub.</div>',
-            unsafe_allow_html=True,
+
+        encoded = int(
+            model.predict(x)[0]
+        )
+
+        raw_prediction = str(
+            encoder.inverse_transform(
+                [encoded]
+            )[0]
+        )
+
+        raw_prediction = (
+            raw_prediction
+            .upper()
+            .replace("_", " ")
         )
 
 
-# ---------------------------------------------------------------------
-# MODEL
-# ---------------------------------------------------------------------
+    ax = np.array([
+        float(
+            record.get(
+                "accel_x",
+                0.0
+            )
+        )
+        for record in records
+    ])
 
-with tab_model:
-    metrics = metadata.get("evaluation_metrics", {})
+    ay = np.array([
+        float(
+            record.get(
+                "accel_y",
+                0.0
+            )
+        )
+        for record in records
+    ])
 
-    st.markdown("### Saved evaluation results")
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Accuracy", percentage(metrics.get("accuracy")))
-    m2.metric("Precision", percentage(metrics.get("precision")))
-    m3.metric("Recall", percentage(metrics.get("recall")))
-    m4.metric("F1 Score", percentage(metrics.get("f1_score")))
+    az = np.array([
+        float(
+            record.get(
+                "accel_z",
+                9.81
+            )
+        )
+        for record in records
+    ])
 
-    values = [
-        metrics.get("accuracy"),
-        metrics.get("precision"),
-        metrics.get("recall"),
-        metrics.get("f1_score"),
+
+    movement_variance = float(
+        np.var(ax)
+        +
+        np.var(ay)
+        +
+        np.var(az)
+    )
+
+
+    if (
+        movement_variance
+        <
+        REST_THRESHOLD
+    ):
+
+        return (
+            "REST",
+            probabilities.get(
+                "REST"
+            ),
+            "REST confidence",
+            raw_prediction,
+        )
+
+
+    if (
+        confidence is not None
+        and
+        confidence
+        <
+        LOW_CONFIDENCE
+    ):
+
+        return (
+            "WORKOUT",
+            confidence,
+            "Model confidence",
+            raw_prediction,
+        )
+
+
+    return (
+        raw_prediction,
+        confidence,
+        "Model confidence",
+        raw_prediction,
+    )
+
+
+# ============================================================
+# SMOOTHING
+# ============================================================
+
+def smooth_prediction(label):
+
+    recent = list(
+        st.session_state.recent
+    )
+
+    recent.append(label)
+
+    recent = recent[
+        -SMOOTH_WINDOW:
     ]
 
-    try:
-        numeric_values = [float(v) for v in values if v is not None]
-    except Exception:
-        numeric_values = []
+    st.session_state.recent = recent
 
-    if numeric_values and min(numeric_values) >= 99.9:
-        st.markdown(
-            """
-            <div class="gs-warning">
-                Competition note: the currently saved evaluation is extremely high.
-                If the training data is synthetic or highly controlled, explain that
-                clearly and collect real phone-sensor recordings before claiming
-                real-world performance.
-            </div>
-            """,
-            unsafe_allow_html=True,
+    if len(recent) < SMOOTH_WINDOW:
+        return label
+
+    winner, count = (
+        Counter(recent)
+        .most_common(1)[0]
+    )
+
+    if count >= 2:
+        return winner
+
+    current = (
+        st.session_state
+        .current_activity
+    )
+
+    if current != "READY":
+        return current
+
+    return label
+
+
+# ============================================================
+# REP COUNTER
+# ============================================================
+
+def find_rep_peaks(records):
+
+    if len(records) < 12:
+        return []
+
+    ax = np.array([
+        float(
+            r.get(
+                "accel_x",
+                0
+            )
         )
+        for r in records
+    ])
 
-    comparison = metadata.get("model_comparison", {})
-    if comparison:
-        rows = []
-        for name, result in comparison.items():
-            rows.append(
-                {
-                    "Model": name,
-                    "Accuracy (%)": result.get("accuracy"),
-                    "Precision (%)": result.get("precision"),
-                    "Recall (%)": result.get("recall"),
-                    "F1 (%)": result.get("f1_score"),
-                }
+    ay = np.array([
+        float(
+            r.get(
+                "accel_y",
+                0
+            )
+        )
+        for r in records
+    ])
+
+    az = np.array([
+        float(
+            r.get(
+                "accel_z",
+                9.81
+            )
+        )
+        for r in records
+    ])
+
+    magnitude = np.sqrt(
+        ax * ax
+        +
+        ay * ay
+        +
+        az * az
+    )
+
+    dynamic = np.abs(
+        magnitude
+        -
+        np.median(
+            magnitude
+        )
+    )
+
+    threshold = max(
+        0.65,
+        float(
+            np.mean(dynamic)
+            +
+            0.75
+            *
+            np.std(dynamic)
+        )
+    )
+
+    peaks = []
+    last_index = -999
+
+    min_distance = max(
+        6,
+        len(records) // 10
+    )
+
+    for index in range(
+        1,
+        len(dynamic) - 1
+    ):
+
+        if (
+            dynamic[index] > threshold
+            and
+            dynamic[index] >= dynamic[index - 1]
+            and
+            dynamic[index] > dynamic[index + 1]
+            and
+            index - last_index >= min_distance
+        ):
+
+            timestamp = int(
+                records[index]
+                .get(
+                    "timestamp_ms",
+                    0
+                )
+                or 0
             )
 
-        comparison_df = pd.DataFrame(rows)
-        st.markdown("### Model comparison")
-        st.dataframe(
-            comparison_df,
-            use_container_width=True,
-            hide_index=True,
+            peaks.append(timestamp)
+
+            last_index = index
+
+    return peaks
+
+
+def update_reps(
+    records,
+    activity
+):
+
+    if activity not in REPETITIVE:
+        return
+
+    st.session_state.rep_totals.setdefault(
+        activity,
+        0
+    )
+
+    last_timestamp = int(
+        st.session_state
+        .last_rep_ts
+        .get(
+            activity,
+            0
         )
+    )
 
-    feature_importance = metadata.get("top_feature_importances", [])
-    if feature_importance:
-        st.markdown("### Top feature importance")
-        fi_df = pd.DataFrame(feature_importance)
+    for timestamp in find_rep_peaks(
+        records
+    ):
 
-        if {"feature", "importance"}.issubset(fi_df.columns):
-            chart_df = (
-                fi_df[["feature", "importance"]]
-                .set_index("feature")
-                .sort_values("importance", ascending=False)
+        if (
+            timestamp > 0
+            and
+            timestamp - last_timestamp >= 550
+        ):
+
+            st.session_state.rep_totals[
+                activity
+            ] += 1
+
+            last_timestamp = timestamp
+
+    st.session_state.last_rep_ts[
+        activity
+    ] = last_timestamp
+
+
+# ============================================================
+# HISTORY
+# ============================================================
+
+def start_activity(activity):
+
+    st.session_state.current_activity = (
+        activity
+    )
+
+    st.session_state.activity_started = (
+        time.time()
+    )
+
+    if activity in REPETITIVE:
+
+        if (
+            st.session_state.last_non_rest
+            !=
+            activity
+        ):
+
+            st.session_state.set_totals[
+                activity
+            ] = (
+                st.session_state
+                .set_totals
+                .get(
+                    activity,
+                    0
+                )
+                + 1
             )
-            st.bar_chart(chart_df, height=360)
 
-    cm = metadata.get("confusion_matrix", {})
-    matrix = cm.get("matrix", [])
-    labels = cm.get("labels", [])
-
-    if matrix and labels:
-        st.markdown("### Confusion matrix")
-        cm_df = pd.DataFrame(
-            matrix,
-            index=labels,
-            columns=labels,
+        st.session_state.segment_rep_start = (
+            st.session_state
+            .rep_totals
+            .get(
+                activity,
+                0
+            )
         )
-        st.dataframe(cm_df, use_container_width=True)
 
-
-# ---------------------------------------------------------------------
-# DATASET
-# ---------------------------------------------------------------------
-
-with tab_data:
-    if not dataset["exists"]:
-        st.warning("`data/sensor_data.csv` was not found.")
-    elif dataset.get("error"):
-        st.error(f"Could not read dataset: {dataset['error']}")
     else:
-        d1, d2, d3 = st.columns(3)
-        d1.metric("Raw sensor rows", f"{dataset['rows']:,}")
-        d2.metric("Columns", dataset["columns"])
-        d3.metric("Activity labels", len(dataset["activities"]) or "—")
 
-        st.markdown("### Dataset role")
-        st.write(
-            "Raw phone motion samples are grouped into short time windows. "
-            "Statistical and motion features are extracted from each window "
-            "before training the classifiers."
+        st.session_state.segment_rep_start = 0
+
+
+def close_activity():
+
+    activity = (
+        st.session_state
+        .current_activity
+    )
+
+    started = (
+        st.session_state
+        .activity_started
+    )
+
+    if (
+        activity in (
+            None,
+            "READY"
         )
+        or
+        started is None
+    ):
+        return
 
-        if not dataset["counts"].empty:
-            st.markdown("### Samples by activity")
-            counts_chart = dataset["counts"].set_index("Activity")
-            st.bar_chart(counts_chart, height=380)
-            st.dataframe(
-                dataset["counts"],
-                use_container_width=True,
-                hide_index=True,
+    end_time = time.time()
+
+    reps = 0
+
+    if activity in REPETITIVE:
+
+        reps = max(
+            0,
+
+            st.session_state
+            .rep_totals
+            .get(
+                activity,
+                0
             )
 
+            -
 
-# ---------------------------------------------------------------------
-# HOW IT WORKS
-# ---------------------------------------------------------------------
+            st.session_state
+            .segment_rep_start
+        )
 
-with tab_flow:
-    st.markdown("### End-to-end ML pipeline")
+    st.session_state.history.append(
+        {
+            "activity": activity,
+            "start": started,
+            "end": end_time,
+            "duration": max(
+                0,
+                end_time - started
+            ),
+            "reps": reps,
+            "confidence":
+                st.session_state
+                .current_confidence,
+        }
+    )
+
+    if activity != "REST":
+
+        st.session_state.last_non_rest = (
+            activity
+        )
+
+
+def change_activity(new_activity):
+
+    old_activity = (
+        st.session_state
+        .current_activity
+    )
+
+    if old_activity == "READY":
+
+        start_activity(
+            new_activity
+        )
+
+        return
+
+    if old_activity == new_activity:
+        return
+
+    close_activity()
+
+    if new_activity == "REST":
+
+        st.session_state.last_non_rest = None
+
+    start_activity(
+        new_activity
+    )
+
+
+# ============================================================
+# WORKOUT
+# ============================================================
+
+def start_workout():
+
+    st.session_state.workout_running = True
+
+    st.session_state.workout_start = (
+        time.time()
+    )
+
+    st.session_state.current_activity = (
+        "READY"
+    )
+
+    st.session_state.activity_started = None
+
+    st.session_state.history = []
+
+    st.session_state.rep_totals = {}
+
+    st.session_state.set_totals = {}
+
+    st.session_state.last_rep_ts = {}
+
+    st.session_state.recent = []
+
+    st.session_state.last_non_rest = None
+
+    st.session_state.summary = None
+
+
+def end_workout():
+
+    if not st.session_state.workout_running:
+        return
+
+    close_activity()
+
+    end_time = time.time()
+
+    start_time = (
+        st.session_state.workout_start
+        or
+        end_time
+    )
+
+    active_time = sum(
+        item["duration"]
+
+        for item in
+        st.session_state.history
+
+        if item["activity"]
+        !=
+        "REST"
+    )
+
+    activities = sorted({
+        item["activity"]
+
+        for item in
+        st.session_state.history
+
+        if item["activity"]
+        !=
+        "REST"
+    })
+
+    st.session_state.summary = {
+        "duration":
+            max(
+                0,
+                end_time - start_time
+            ),
+
+        "active":
+            active_time,
+
+        "reps":
+            sum(
+                st.session_state
+                .rep_totals
+                .values()
+            ),
+
+        "sets":
+            sum(
+                st.session_state
+                .set_totals
+                .values()
+            ),
+
+        "activities":
+            activities,
+    }
+
+    st.session_state.workout_running = False
+    st.session_state.current_activity = "READY"
+    st.session_state.activity_started = None
+    st.session_state.recent = []
+
+
+# ============================================================
+# AVATAR FUNCTIONS
+# ============================================================
+
+def file_to_uri(path: Path):
+
+    mime, _ = (
+        mimetypes
+        .guess_type(
+            path.name
+        )
+    )
+
+    encoded = (
+        base64
+        .b64encode(
+            path.read_bytes()
+        )
+        .decode("ascii")
+    )
+
+    return (
+        f"data:"
+        f"{mime or 'image/png'}"
+        f";base64,"
+        f"{encoded}"
+    )
+
+
+def get_avatar_media(
+    gender,
+    activity
+):
+
+    folder = (
+        AVATARS /
+        gender
+    )
+
+    slug = ACTIVITY_SLUG.get(
+        activity,
+        "workout"
+    )
+
+    for extension in (
+        ".gif",
+        ".webp",
+        ".mp4",
+        ".png",
+    ):
+
+        candidate = (
+            folder /
+            f"{slug}{extension}"
+        )
+
+        if candidate.exists():
+            return candidate
+
+    default_image = (
+        folder /
+        "default.png"
+    )
+
+    if default_image.exists():
+        return default_image
+
+    return None
+
+
+def show_avatar_preview(
+    path,
+    name
+):
+
+    if not path.exists():
+
+        st.error(
+            f"Missing {name} avatar."
+        )
+
+        return
 
     st.markdown(
-        """
-        <div class="gs-flow">
-            📱 SMARTPHONE<br>
-            <span class="gs-arrow">↓</span><br>
-            ACCELEROMETER + GYROSCOPE<br>
-            <span class="gs-arrow">↓</span><br>
-            SENSOR WINDOWING<br>
-            <span class="gs-arrow">↓</span><br>
-            FEATURE EXTRACTION<br>
-            <span class="gs-arrow">↓</span><br>
-            🧠 TRAINED ML CLASSIFIER<br>
-            <span class="gs-arrow">↓</span><br>
-            PREDICTION + CONFIDENCE<br>
-            <span class="gs-arrow">↓</span><br>
-            PREDICTION SMOOTHING<br>
-            <span class="gs-arrow">↓</span><br>
-            EXERCISE / REST / WORKOUT<br>
-            <span class="gs-arrow">↓</span><br>
-            ANIMATION + TIMER + REPS + SETS<br>
-            <span class="gs-arrow">↓</span><br>
-            HISTORY + ANALYTICS
-        </div>
-        """,
+        f"""
+<div class="avatar-preview">
+
+<img
+src="{file_to_uri(path)}"
+alt="{name}">
+
+</div>
+""",
         unsafe_allow_html=True,
     )
 
-    st.markdown("### Why both sensors?")
-    x, y = st.columns(2)
 
-    with x:
-        st.markdown(
-            """
-            <div class="gs-card">
-                <h3>Accelerometer</h3>
-                <div class="gs-muted">
-                    Measures linear motion and changes along X, Y and Z.
-                    It helps distinguish stillness, walking, running and
-                    repeated exercise movement.
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+def current_elapsed():
+
+    if (
+        st.session_state.workout_running
+        and
+        st.session_state.activity_started
+    ):
+
+        return max(
+            0,
+            int(
+                time.time()
+                -
+                st.session_state
+                .activity_started
+            )
         )
 
-    with y:
-        st.markdown(
-            """
-            <div class="gs-card">
-                <h3>Gyroscope / Rotation</h3>
-                <div class="gs-muted">
-                    Adds rotational movement information. This helps separate
-                    exercises that may have similar acceleration but different
-                    orientation or arm/body rotation patterns.
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+    return 0
+
+
+def format_duration(seconds):
+
+    seconds = int(
+        max(
+            0,
+            seconds
         )
-
-
-# ---------------------------------------------------------------------
-# LIVE PHONE APP
-# ---------------------------------------------------------------------
-
-with tab_live:
-    st.markdown("### Live smartphone workout app")
-
-    st.info(
-        "Your full phone-sensor interface is a FastAPI + HTML/CSS/JavaScript PWA. "
-        "That version should be deployed on an HTTPS FastAPI host such as Render. "
-        "Streamlit is best used here as the ML/project dashboard."
     )
 
-    live_url = get_live_app_url()
+    minutes, seconds = divmod(
+        seconds,
+        60
+    )
 
-    if live_url:
-        st.link_button(
-            "📱 Open GymSense AI Live Workout",
-            live_url,
+    return (
+        f"{minutes:02d}:"
+        f"{seconds:02d}"
+    )
+
+
+def show_current_avatar():
+
+    gender = (
+        st.session_state.avatar
+        or "female"
+    )
+
+    activity = (
+        st.session_state
+        .current_activity
+    )
+
+    media = get_avatar_media(
+        gender,
+        activity
+    )
+
+    if media is None:
+
+        st.error(
+            "Avatar image missing."
+        )
+
+        return
+
+    emoji = ACTIVITY_EMOJI.get(
+        activity,
+        "🔥"
+    )
+
+    if media.suffix.lower() == ".mp4":
+
+        st.video(
+            str(media),
+            autoplay=True,
+            loop=True,
+            muted=True,
+        )
+
+        return
+
+    motion_class = (
+        "motion-"
+        +
+        ACTIVITY_SLUG
+        .get(
+            activity,
+            "workout"
+        )
+        .replace(
+            "_",
+            "-"
+        )
+    )
+
+    st.markdown(
+        f"""
+<div class="avatar-stage {motion_class}">
+
+<div class="activity-overlay">
+
+{emoji}
+{activity}
+
+</div>
+
+<img
+src="{file_to_uri(media)}"
+alt="{activity} avatar">
+
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+
+# ============================================================
+# SENSOR HTML
+# ============================================================
+
+SENSOR_HTML = r"""
+<div class="sensor-card">
+
+<div class="sensor-title-row">
+
+<div>
+<b>MOTION SENSOR</b>
+<span id="message">
+Tap Enable Sensor
+</span>
+</div>
+
+<span id="badge">
+● OFF
+</span>
+
+</div>
+
+
+<div class="button-grid">
+
+<button id="enable">
+Enable Sensor
+</button>
+
+<button
+id="start"
+disabled>
+Start Workout
+</button>
+
+<button
+id="end"
+disabled>
+End Workout
+</button>
+
+</div>
+
+
+<div class="sensor-grid">
+
+
+<div class="sensor-box">
+
+<div class="sensor-box-title">
+
+ACCELEROMETER
+
+<span id="acc-status">
+OFF
+</span>
+
+</div>
+
+<canvas id="acc-canvas"></canvas>
+
+<div class="sensor-values">
+
+<span>
+X <b id="ax">0.00</b>
+</span>
+
+<span>
+Y <b id="ay">0.00</b>
+</span>
+
+<span>
+Z <b id="az">0.00</b>
+</span>
+
+</div>
+
+</div>
+
+
+<div class="sensor-box">
+
+<div class="sensor-box-title">
+
+GYROSCOPE
+
+<span id="gyro-status">
+OFF
+</span>
+
+</div>
+
+<canvas id="gyro-canvas"></canvas>
+
+<div class="sensor-values">
+
+<span>
+α <b id="ga">0.00</b>
+</span>
+
+<span>
+β <b id="gb">0.00</b>
+</span>
+
+<span>
+γ <b id="gg">0.00</b>
+</span>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="sensor-note">
+
+Phone motion only
+•
+Not ECG / heart-rate data
+
+</div>
+
+</div>
+"""
+
+
+SENSOR_CSS = r"""
+
+.sensor-card {
+    color:#ffffff;
+
+    border:
+        1px solid
+        rgba(255,255,255,.08);
+
+    background:
+        linear-gradient(
+            145deg,
+            #0b1930,
+            #071426
+        );
+
+    border-radius:16px;
+
+    padding:9px;
+
+    font-family:
+        Inter,
+        system-ui;
+}
+
+
+.sensor-title-row {
+    display:flex;
+
+    justify-content:
+        space-between;
+
+    align-items:
+        center;
+}
+
+
+.sensor-title-row b {
+    display:block;
+
+    font-size:10px;
+
+    letter-spacing:.13em;
+
+    color:#8ba0bd;
+}
+
+
+.sensor-title-row div span {
+    display:block;
+
+    font-size:11px;
+
+    color:#9db0ca;
+
+    margin-top:2px;
+}
+
+
+#badge {
+    font-size:10px;
+
+    font-weight:900;
+
+    border:
+        1px solid
+        #35465e;
+
+    border-radius:999px;
+
+    padding:4px 7px;
+}
+
+
+.button-grid {
+    display:grid;
+
+    grid-template-columns:
+        1.2fr 1fr 1fr;
+
+    gap:5px;
+
+    margin-top:8px;
+}
+
+
+button {
+    min-height:35px;
+
+    border-radius:10px;
+
+    border:
+        1px solid
+        rgba(255,255,255,.10);
+
+    background:#142540;
+
+    color:white;
+
+    font-size:10px;
+
+    font-weight:850;
+
+    padding:4px;
+}
+
+
+#enable {
+    background:
+        linear-gradient(
+            90deg,
+            #ff4e9f,
+            #8e48ff
+        );
+
+    border:none;
+}
+
+
+#start {
+    background:
+        linear-gradient(
+            90deg,
+            #22b879,
+            #24d6a0
+        );
+
+    border:none;
+}
+
+
+#end {
+    background:
+        linear-gradient(
+            90deg,
+            #d43d68,
+            #ff536d
+        );
+
+    border:none;
+}
+
+
+button:disabled {
+    opacity:.34;
+}
+
+
+.sensor-grid {
+    display:grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap:6px;
+
+    margin-top:7px;
+}
+
+
+.sensor-box {
+    border:
+        1px solid
+        rgba(255,255,255,.06);
+
+    background:#06111f;
+
+    border-radius:12px;
+
+    padding:6px;
+}
+
+
+.sensor-box-title {
+    display:flex;
+
+    justify-content:
+        space-between;
+
+    font-size:8px;
+
+    color:#9db0ca;
+
+    font-weight:850;
+}
+
+
+.sensor-box-title span {
+    color:#50e2a4;
+}
+
+
+canvas {
+    display:block;
+
+    width:100%;
+
+    height:58px;
+
+    margin-top:2px;
+}
+
+
+.sensor-values {
+    display:flex;
+
+    justify-content:
+        space-between;
+
+    gap:3px;
+
+    font-size:8px;
+
+    color:#8297b7;
+}
+
+
+.sensor-values b {
+    color:#ffffff;
+}
+
+
+.sensor-note {
+    font-size:8px;
+
+    color:#657c9b;
+
+    text-align:center;
+
+    margin-top:4px;
+}
+
+
+@media(max-width:420px) {
+
+    .button-grid {
+        grid-template-columns:
+            1fr 1fr 1fr;
+    }
+
+    button {
+        font-size:9px;
+        min-height:33px;
+    }
+
+    .sensor-grid {
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+    canvas {
+        height:50px;
+    }
+
+}
+"""
+
+
+# ============================================================
+# SENSOR JS
+# ============================================================
+
+SENSOR_JS = r"""
+
+export default function(component) {
+
+const {
+parentElement,
+setTriggerValue,
+data
+} = component;
+
+
+if (!parentElement.__gymSenseState) {
+
+const S = {
+
+enabled:false,
+
+calibrated:false,
+
+workout:false,
+
+buffer:[],
+
+lastEmit:0,
+
+accHistory:[],
+
+gyroHistory:[],
+
+listener:null
+
+};
+
+
+parentElement.__gymSenseState = S;
+
+
+const q =
+selector =>
+parentElement.querySelector(selector);
+
+
+const enableButton =
+q('#enable');
+
+const startButton =
+q('#start');
+
+const endButton =
+q('#end');
+
+const message =
+q('#message');
+
+const badge =
+q('#badge');
+
+const accStatus =
+q('#acc-status');
+
+const gyroStatus =
+q('#gyro-status');
+
+
+const ax = q('#ax');
+const ay = q('#ay');
+const az = q('#az');
+
+const ga = q('#ga');
+const gb = q('#gb');
+const gg = q('#gg');
+
+
+function setMessage(text) {
+message.textContent = text;
+}
+
+
+function setLive(live) {
+
+badge.textContent =
+live
+?
+'● LIVE'
+:
+'● OFF';
+
+
+badge.style.color =
+live
+?
+'#56e5a8'
+:
+'#ffffff';
+
+
+accStatus.textContent =
+live
+?
+'LIVE'
+:
+'OFF';
+
+
+gyroStatus.textContent =
+live
+?
+'LIVE'
+:
+'OFF';
+
+}
+
+
+function addHistory(
+list,
+value
+) {
+
+list.push(
+value
+);
+
+
+if (
+list.length > 55
+) {
+
+list.splice(
+0,
+list.length - 55
+);
+
+}
+
+}
+
+
+function drawGraph(
+canvas,
+rows,
+colors
+) {
+
+const rect =
+canvas.getBoundingClientRect();
+
+
+const ratio =
+window.devicePixelRatio
+||
+1;
+
+
+const width =
+Math.max(
+120,
+rect.width
+);
+
+
+const height =
+Math.max(
+45,
+rect.height
+);
+
+
+canvas.width =
+width * ratio;
+
+
+canvas.height =
+height * ratio;
+
+
+const ctx =
+canvas.getContext(
+'2d'
+);
+
+
+ctx.scale(
+ratio,
+ratio
+);
+
+
+ctx.clearRect(
+0,
+0,
+width,
+height
+);
+
+
+ctx.strokeStyle =
+'rgba(120,150,190,.12)';
+
+
+for (
+let index = 0;
+index <= 3;
+index++
+) {
+
+const y =
+height * index / 3;
+
+
+ctx.beginPath();
+
+ctx.moveTo(
+0,
+y
+);
+
+ctx.lineTo(
+width,
+y
+);
+
+ctx.stroke();
+
+}
+
+
+if (
+rows.length < 2
+) {
+return;
+}
+
+
+const flattened =
+rows
+.flat()
+.filter(
+Number.isFinite
+);
+
+
+const maxValue =
+Math.max(
+1,
+...flattened.map(
+value =>
+Math.abs(value)
+)
+);
+
+
+const middle =
+height / 2;
+
+
+for (
+let axis = 0;
+axis < 3;
+axis++
+) {
+
+ctx.strokeStyle =
+colors[axis];
+
+
+ctx.lineWidth =
+1.4;
+
+
+ctx.beginPath();
+
+
+rows.forEach(
+(row,index) => {
+
+const x =
+index
+*
+width
+/
+(
+rows.length - 1
+);
+
+
+const y =
+middle
+
+-
+
+(
+row[axis]
+/
+maxValue
+)
+
+*
+(
+height * .40
+);
+
+
+if (
+index === 0
+) {
+
+ctx.moveTo(
+x,
+y
+);
+
+}
+
+else {
+
+ctx.lineTo(
+x,
+y
+);
+
+}
+
+}
+);
+
+
+ctx.stroke();
+
+}
+
+}
+
+
+function animationLoop() {
+
+drawGraph(
+
+q('#acc-canvas'),
+
+S.accHistory,
+
+[
+'#ff5d79',
+'#42b5ff',
+'#42e39c'
+]
+
+);
+
+
+drawGraph(
+
+q('#gyro-canvas'),
+
+S.gyroHistory,
+
+[
+'#ff5bc3',
+'#42e5ef',
+'#ffd45a'
+]
+
+);
+
+
+requestAnimationFrame(
+animationLoop
+);
+
+}
+
+
+animationLoop();
+
+
+async function enableSensors() {
+
+try {
+
+
+if (
+!(
+'DeviceMotionEvent'
+in window
+)
+) {
+
+setMessage(
+'Motion sensor unavailable'
+);
+
+
+setTriggerValue(
+
+'sensor_status',
+
+{
+
+status:
+'UNSUPPORTED',
+
+ts:
+Date.now()
+
+}
+
+);
+
+
+return;
+
+}
+
+
+if (
+typeof
+DeviceMotionEvent.requestPermission
+===
+'function'
+) {
+
+const permission =
+
+await
+DeviceMotionEvent
+.requestPermission();
+
+
+if (
+permission
+!==
+'granted'
+) {
+
+setMessage(
+'Sensor permission denied'
+);
+
+
+setTriggerValue(
+
+'sensor_status',
+
+{
+
+status:
+'DENIED',
+
+ts:
+Date.now()
+
+}
+
+);
+
+
+return;
+
+}
+
+}
+
+
+if (!S.listener) {
+
+S.listener =
+event => {
+
+
+const accel =
+
+event.accelerationIncludingGravity
+
+||
+
+event.acceleration
+
+||
+
+{};
+
+
+const rotation =
+
+event.rotationRate
+
+||
+
+{};
+
+
+const sample = {
+
+accel_x:
+Number(
+accel.x
+||
+0
+),
+
+accel_y:
+Number(
+accel.y
+||
+0
+),
+
+accel_z:
+Number(
+accel.z
+||
+0
+),
+
+gyro_alpha:
+Number(
+rotation.alpha
+||
+0
+),
+
+gyro_beta:
+Number(
+rotation.beta
+||
+0
+),
+
+gyro_gamma:
+Number(
+rotation.gamma
+||
+0
+),
+
+timestamp_ms:
+Date.now()
+
+};
+
+
+ax.textContent =
+sample.accel_x.toFixed(2);
+
+ay.textContent =
+sample.accel_y.toFixed(2);
+
+az.textContent =
+sample.accel_z.toFixed(2);
+
+
+ga.textContent =
+sample.gyro_alpha.toFixed(2);
+
+gb.textContent =
+sample.gyro_beta.toFixed(2);
+
+gg.textContent =
+sample.gyro_gamma.toFixed(2);
+
+
+addHistory(
+
+S.accHistory,
+
+[
+sample.accel_x,
+sample.accel_y,
+sample.accel_z
+]
+
+);
+
+
+addHistory(
+
+S.gyroHistory,
+
+[
+sample.gyro_alpha,
+sample.gyro_beta,
+sample.gyro_gamma
+]
+
+);
+
+
+if (S.workout) {
+
+S.buffer.push(
+sample
+);
+
+
+const now =
+Date.now();
+
+
+if (
+
+S.buffer.length
+>=
+20
+
+&&
+
+now
+-
+S.lastEmit
+>=
+1600
+
+) {
+
+setTriggerValue(
+
+'window',
+
+{
+
+samples:
+S.buffer.slice(
+-100
+),
+
+ts:
+now
+
+}
+
+);
+
+
+S.buffer =
+S.buffer.slice(
+-6
+);
+
+
+S.lastEmit =
+now;
+
+}
+
+}
+
+};
+
+
+window.addEventListener(
+
+'devicemotion',
+
+S.listener,
+
+{
+passive:true
+}
+
+);
+
+}
+
+
+S.enabled =
+true;
+
+
+setLive(
+true
+);
+
+
+enableButton.disabled =
+true;
+
+
+enableButton.textContent =
+'✓ Sensor Enabled';
+
+
+setMessage(
+'Keep phone still... 3'
+);
+
+
+let seconds = 3;
+
+
+const timer =
+setInterval(
+() => {
+
+
+seconds--;
+
+
+if (
+seconds > 0
+) {
+
+setMessage(
+'Keep phone still... '
++
+seconds
+);
+
+}
+
+else {
+
+clearInterval(
+timer
+);
+
+
+S.calibrated =
+true;
+
+
+startButton.disabled =
+false;
+
+
+setMessage(
+'Sensor ready'
+);
+
+
+setTriggerValue(
+
+'sensor_status',
+
+{
+
+status:
+'READY',
+
+ts:
+Date.now()
+
+}
+
+);
+
+}
+
+},
+
+1000
+
+);
+
+
+setTriggerValue(
+
+'sensor_status',
+
+{
+
+status:
+'LIVE',
+
+ts:
+Date.now()
+
+}
+
+);
+
+
+}
+
+catch(error) {
+
+setMessage(
+'Sensor error'
+);
+
+
+setTriggerValue(
+
+'sensor_status',
+
+{
+
+status:
+'ERROR',
+
+ts:
+Date.now()
+
+}
+
+);
+
+}
+
+}
+
+
+function startWorkout() {
+
+if (
+!S.enabled
+||
+!S.calibrated
+) {
+
+return;
+
+}
+
+
+S.workout =
+true;
+
+
+S.buffer =
+[];
+
+
+S.lastEmit =
+0;
+
+
+startButton.disabled =
+true;
+
+
+endButton.disabled =
+false;
+
+
+setMessage(
+'Workout running'
+);
+
+
+setTriggerValue(
+
+'session_event',
+
+{
+
+event:
+'START',
+
+ts:
+Date.now()
+
+}
+
+);
+
+}
+
+
+function endWorkout() {
+
+if (!S.workout) {
+
+return;
+
+}
+
+
+S.workout =
+false;
+
+
+endButton.disabled =
+true;
+
+
+startButton.disabled =
+false;
+
+
+setMessage(
+'Workout completed'
+);
+
+
+setTriggerValue(
+
+'session_event',
+
+{
+
+event:
+'END',
+
+ts:
+Date.now()
+
+}
+
+);
+
+}
+
+
+enableButton.addEventListener(
+'click',
+enableSensors
+);
+
+
+startButton.addEventListener(
+'click',
+startWorkout
+);
+
+
+endButton.addEventListener(
+'click',
+endWorkout
+);
+
+}
+
+
+const S =
+parentElement
+.__gymSenseState;
+
+
+if (
+data?.workoutRunning
+===
+false
+&&
+S.workout
+) {
+
+S.workout =
+false;
+
+}
+
+
+return () => {};
+
+}
+"""
+
+
+sensor_component = (
+    st.components.v2.component(
+
+        "gymsense_mobile_sensor",
+
+        html=SENSOR_HTML,
+
+        css=SENSOR_CSS,
+
+        js=SENSOR_JS,
+    )
+)
+
+
+# ============================================================
+# HEADER
+# ============================================================
+
+header_left, header_right = (
+    st.columns(
+        [2.5, 1],
+        vertical_alignment="center",
+    )
+)
+
+
+with header_left:
+
+    st.markdown(
+        f"""
+<div class="gs-header">
+
+<div>
+
+<div class="gs-brand">
+
+GymSense
+<span>
+AI
+</span>
+
+</div>
+
+<div class="gs-sub">
+
+Phone Motion Workout Recognition
+
+</div>
+
+</div>
+
+<div class="status-pill">
+
+●
+{st.session_state.sensor_status}
+
+</div>
+
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+
+with header_right:
+
+    if (
+        st.session_state.avatar
+        is not None
+    ):
+
+        switch = st.button(
+            "↔ Avatar",
+
             use_container_width=True,
-        )
-        st.caption(
-            "Open this HTTPS link on your phone to use the real accelerometer "
-            "and gyroscope workflow."
-        )
-    else:
-        st.markdown(
-            """
-            <div class="gs-card">
-                <h3>Connect your live app</h3>
-                <div class="gs-muted">
-                    After deploying the FastAPI/PWA version, add its HTTPS URL
-                    to Streamlit Cloud Secrets as:
-                    <br><br>
-                    <code>GYMSENSE_APP_URL = "https://your-app.onrender.com"</code>
-                    <br><br>
-                    This tab will then show a direct button to your real phone app.
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+
+            disabled=
+                st.session_state
+                .workout_running,
         )
 
-    st.markdown("### Why not run the full sensor PWA inside Streamlit?")
-    st.write(
-        "Your production workout app depends on custom browser motion APIs, "
-        "service-worker/PWA behavior, and FastAPI prediction routes. Keeping that "
-        "part on its native HTTPS deployment preserves the sensor and installable-app "
-        "experience, while this Streamlit page gives judges a clean ML dashboard."
+
+        if switch:
+
+            st.session_state.avatar = None
+
+            st.session_state.current_activity = (
+                "READY"
+            )
+
+            st.session_state.current_confidence = None
+
+            st.session_state.recent = []
+
+            st.rerun()
+
+
+# ============================================================
+# AVATAR CHOOSER
+# ============================================================
+
+if st.session_state.avatar is None:
+
+    st.markdown(
+        """
+<div class="gs-card">
+
+<div class="gs-section-title">
+
+CHOOSE AVATAR
+
+</div>
+
+<div style="
+font-size:1.25rem;
+font-weight:950;
+">
+
+Select Your Workout Avatar
+
+</div>
+
+<div style="
+font-size:.68rem;
+color:#879bb9;
+">
+
+Avatar selection changes
+only the visual character.
+
+</div>
+
+</div>
+""",
+        unsafe_allow_html=True,
     )
 
 
-# ---------------------------------------------------------------------
-# FOOTER
-# ---------------------------------------------------------------------
+    female_column, male_column = (
+        st.columns(
+            2,
+            gap="small",
+        )
+    )
 
-st.divider()
+
+    with female_column:
+
+        female = (
+            AVATARS /
+            "female" /
+            "default.png"
+        )
+
+
+        show_avatar_preview(
+            female,
+            "Female"
+        )
+
+
+        if st.button(
+            "Female",
+
+            use_container_width=True,
+
+            type="primary",
+        ):
+
+            st.session_state.avatar = "female"
+
+            st.rerun()
+
+
+    with male_column:
+
+        male = (
+            AVATARS /
+            "male" /
+            "default.png"
+        )
+
+
+        show_avatar_preview(
+            male,
+            "Male"
+        )
+
+
+        if st.button(
+            "Male",
+
+            use_container_width=True,
+        ):
+
+            st.session_state.avatar = "male"
+
+            st.rerun()
+
+
+    st.stop()
+
+
+# ============================================================
+# LIVE WORKOUT
+# ============================================================
+
+st.markdown(
+    '<div class="gs-section-title">'
+    'LIVE WORKOUT'
+    '</div>',
+    unsafe_allow_html=True,
+)
+
+
+show_current_avatar()
+
+
+activity = (
+    st.session_state
+    .current_activity
+)
+
+
+confidence = (
+    st.session_state
+    .current_confidence
+)
+
+
+st.markdown(
+    f"""
+<div class="activity-name">
+
+{ACTIVITY_EMOJI.get(activity, "🔥")}
+{activity}
+
+</div>
+""",
+    unsafe_allow_html=True,
+)
+
+
+if confidence is not None:
+
+    st.markdown(
+        f"""
+<div class="confidence">
+
+Confidence:
+{confidence * 100:.1f}%
+
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+
+else:
+
+    st.markdown(
+        """
+<div class="confidence">
+
+Waiting for sensor prediction
+
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+
+elapsed = current_elapsed()
+
+
+current_reps = (
+    st.session_state
+    .rep_totals
+    .get(
+        activity,
+        0
+    )
+    if activity in REPETITIVE
+    else 0
+)
+
+
+current_sets = (
+    st.session_state
+    .set_totals
+    .get(
+        activity,
+        0
+    )
+    if activity in REPETITIVE
+    else 0
+)
+
+
+st.markdown(
+    f"""
+<div class="metric-row">
+
+<div class="mini-metric">
+
+<div class="mini-metric-label">
+DURATION
+</div>
+
+<div class="mini-metric-value">
+{format_duration(elapsed)}
+</div>
+
+</div>
+
+
+<div class="mini-metric">
+
+<div class="mini-metric-label">
+REPS
+</div>
+
+<div class="mini-metric-value">
+{current_reps if activity in REPETITIVE else "—"}
+</div>
+
+</div>
+
+
+<div class="mini-metric">
+
+<div class="mini-metric-label">
+SETS
+</div>
+
+<div class="mini-metric-value">
+{current_sets if activity in REPETITIVE else "—"}
+</div>
+
+</div>
+
+</div>
+""",
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# SENSOR PANEL
+# ============================================================
+
+sensor_result = sensor_component(
+
+    data={
+        "workoutRunning":
+            bool(
+                st.session_state
+                .workout_running
+            ),
+
+        "prediction":
+            st.session_state
+            .current_activity,
+    },
+
+    key="gym-phone-sensor",
+
+    on_sensor_status_change=
+        lambda: None,
+
+    on_session_event_change=
+        lambda: None,
+
+    on_window_change=
+        lambda: None,
+)
+
+
+# ============================================================
+# SENSOR STATUS
+# ============================================================
+
+sensor_status_event = getattr(
+    sensor_result,
+    "sensor_status",
+    None,
+)
+
+
+if sensor_status_event:
+
+    status = str(
+        sensor_status_event.get(
+            "status",
+            ""
+        )
+    ).upper()
+
+
+    if status == "LIVE":
+
+        st.session_state.sensor_status = (
+            "LIVE"
+        )
+
+
+    elif status == "READY":
+
+        st.session_state.sensor_status = (
+            "READY"
+        )
+
+        st.session_state.calibrated = (
+            True
+        )
+
+
+    elif status:
+
+        st.session_state.sensor_status = (
+            status
+        )
+
+
+# ============================================================
+# START / END
+# ============================================================
+
+session_event = getattr(
+    sensor_result,
+    "session_event",
+    None,
+)
+
+
+if session_event:
+
+    event = str(
+        session_event.get(
+            "event",
+            ""
+        )
+    ).upper()
+
+
+    if (
+        event == "START"
+        and
+        not st.session_state
+        .workout_running
+    ):
+
+        start_workout()
+
+        st.rerun()
+
+
+    elif (
+        event == "END"
+        and
+        st.session_state
+        .workout_running
+    ):
+
+        end_workout()
+
+        st.rerun()
+
+
+# ============================================================
+# SENSOR -> ML
+# ============================================================
+
+sensor_window = getattr(
+    sensor_result,
+    "window",
+    None,
+)
+
+
+if (
+    sensor_window
+    and
+    st.session_state
+    .workout_running
+    and
+    isinstance(
+        sensor_window.get(
+            "samples"
+        ),
+        list,
+    )
+):
+
+    records = (
+        sensor_window[
+            "samples"
+        ]
+    )
+
+
+    if len(records) >= 10:
+
+        (
+            predicted_activity,
+            predicted_confidence,
+            confidence_label,
+            raw_prediction,
+
+        ) = predict_activity(
+            records
+        )
+
+
+        predicted_activity = (
+            smooth_prediction(
+                predicted_activity
+            )
+        )
+
+
+        st.session_state.current_confidence = (
+            predicted_confidence
+        )
+
+
+        st.session_state.confidence_label = (
+            confidence_label
+        )
+
+
+        st.session_state.raw_prediction = (
+            raw_prediction
+        )
+
+
+        change_activity(
+            predicted_activity
+        )
+
+
+        update_reps(
+            records,
+            predicted_activity,
+        )
+
+
+        st.rerun()
+
+
+# ============================================================
+# HISTORY
+# ============================================================
+
+st.markdown(
+    '<div class="gs-section-title" '
+    'style="margin-top:10px;">'
+    'ACTIVITY HISTORY'
+    '</div>',
+    unsafe_allow_html=True,
+)
+
+
+history_rows = []
+
+
+if (
+    st.session_state.workout_running
+    and
+    st.session_state.activity_started
+    and
+    st.session_state.current_activity != "READY"
+):
+
+    start_time = (
+        st.session_state
+        .activity_started
+    )
+
+    current_activity = (
+        st.session_state
+        .current_activity
+    )
+
+    live_reps = (
+        st.session_state
+        .rep_totals
+        .get(
+            current_activity,
+            0
+        )
+        if current_activity in REPETITIVE
+        else 0
+    )
+
+    history_rows.append(
+        {
+            "Exercise":
+                current_activity,
+
+            "Start":
+                time.strftime(
+                    "%I:%M:%S %p",
+                    time.localtime(
+                        start_time
+                    ),
+                ),
+
+            "End":
+                "LIVE",
+
+            "Duration":
+                format_duration(
+                    time.time()
+                    -
+                    start_time
+                ),
+
+            "Reps":
+                (
+                    live_reps
+                    if
+                    current_activity
+                    in REPETITIVE
+                    else
+                    "—"
+                ),
+
+            "Confidence":
+                (
+                    f"{st.session_state.current_confidence * 100:.0f}%"
+                    if
+                    st.session_state.current_confidence
+                    is not None
+                    else
+                    "—"
+                ),
+        }
+    )
+
+
+for item in reversed(
+    st.session_state.history[
+        -15:
+    ]
+):
+
+    history_rows.append(
+        {
+            "Exercise":
+                item["activity"],
+
+            "Start":
+                time.strftime(
+                    "%I:%M:%S %p",
+                    time.localtime(
+                        item["start"]
+                    ),
+                ),
+
+            "End":
+                time.strftime(
+                    "%I:%M:%S %p",
+                    time.localtime(
+                        item["end"]
+                    ),
+                ),
+
+            "Duration":
+                format_duration(
+                    item["duration"]
+                ),
+
+            "Reps":
+                (
+                    item["reps"]
+                    if
+                    item["reps"]
+                    else
+                    "—"
+                ),
+
+            "Confidence":
+                (
+                    f"{item['confidence'] * 100:.0f}%"
+                    if
+                    item["confidence"]
+                    is not None
+                    else
+                    "—"
+                ),
+        }
+    )
+
+
+if history_rows:
+
+    st.dataframe(
+        pd.DataFrame(
+            history_rows
+        ),
+
+        use_container_width=True,
+
+        hide_index=True,
+
+        height=min(
+            225,
+            38
+            +
+            len(history_rows)
+            *
+            34,
+        ),
+    )
+
+
+else:
+
+    st.caption(
+        "Start workout. Detected exercises "
+        "will appear here with time and duration."
+    )
+
+
+# ============================================================
+# SUMMARY
+# ============================================================
+
+if st.session_state.summary:
+
+    summary = (
+        st.session_state.summary
+    )
+
+
+    st.markdown(
+        """
+<div class="gs-card">
+
+<div class="gs-section-title">
+
+WORKOUT COMPLETE
+
+</div>
+
+<div style="
+font-size:1.05rem;
+font-weight:950;
+">
+
+🏆 Session Summary
+
+</div>
+
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+
+    col1, col2 = (
+        st.columns(2)
+    )
+
+
+    col1.metric(
+        "Workout Time",
+        format_duration(
+            summary[
+                "duration"
+            ]
+        ),
+    )
+
+
+    col2.metric(
+        "Active Time",
+        format_duration(
+            summary[
+                "active"
+            ]
+        ),
+    )
+
+
+    col3, col4 = (
+        st.columns(2)
+    )
+
+
+    col3.metric(
+        "Total Reps",
+        summary[
+            "reps"
+        ],
+    )
+
+
+    col4.metric(
+        "Total Sets",
+        summary[
+            "sets"
+        ],
+    )
+
+
+    if summary["activities"]:
+
+        st.caption(
+            "Exercises: "
+            +
+            ", ".join(
+                summary[
+                    "activities"
+                ]
+            )
+        )
+
+
+# ============================================================
+# FOOTER
+# ============================================================
+
 st.caption(
-    "GymSense AI • Ranjitha B K • 1SB24AI041 • "
-    "Artificial Intelligence and Machine Learning • MACHINE SPECTRA 1.0"
+    "GymSense AI • Ranjitha B K • "
+    "1SB24AI041 • AIML"
 )
