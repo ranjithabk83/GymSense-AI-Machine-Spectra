@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#ff2e93">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="GymSense AI">
+  <meta name="description" content="AI-Powered Workout Activity Recognition mobile application by Ranjitha B K (USN: 1SB24AI041, AIML, MACHINE SPECTRA 1.0).">
+
+  <title>GymSense AI — AI Workout Activity Recognition</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="/static/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- ============================================================
+       SCREEN 1: MANDATORY AVATAR SELECTION MODAL (On Every Launch)
+       ============================================================ -->
+  <div id="avatar-selection-overlay" class="avatar-selection-overlay">
+    <div class="avatar-modal-card">
+      <div class="avatar-modal-header">
+        <h2>GymSense AI</h2>
+        <div class="slogan">"Your Motion. Our Intelligence."</div>
+        <h3 style="font-family: var(--font-heading); font-size: 18px; color: #fff; margin-bottom: 4px;">CHOOSE YOUR AVATAR</h3>
+        <p>Select your workout avatar to begin your AI session</p>
+      </div>
+
+      <div class="avatar-grid">
+        <!-- Female Avatar Option Card -->
+        <div id="card-select-female" class="avatar-card-option selected">
+          <canvas id="preview-female-canvas" class="avatar-canvas-preview"></canvas>
+          <div class="avatar-card-label" style="color: #ff80bf;">FEMALE</div>
+          <div class="avatar-card-desc">Pink & Mint Jacket Outfit</div>
+        </div>
+
+        <!-- Male Avatar Option Card -->
+        <div id="card-select-male" class="avatar-card-option">
+          <canvas id="preview-male-canvas" class="avatar-canvas-preview"></canvas>
+          <div class="avatar-card-label" style="color: #60a5fa;">MALE</div>
+          <div class="avatar-card-desc">Black Sleeveless Gym Outfit</div>
+        </div>
+      </div>
+
+      <button id="btn-continue-avatar" class="btn-primary">
+        CONTINUE TO GYMSENSE ▶
+      </button>
+
+      <div style="margin-top: 14px; font-size: 10px; color: var(--text-muted);">
+        Student: Ranjitha B K (1SB24AI041) • MACHINE SPECTRA 1.0
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       APP CONTAINER
+       ============================================================ -->
+  <div id="app-container">
+
+    <!-- Top Sticky App Bar -->
+    <header class="app-header">
+      <div class="brand-title">
+        <div class="brand-logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43L20.57 12L17 15.57L8.43 7L12 3.43L10.57 2L9.14 3.43L7.71 2L5.57 4.14L4.14 2.71L2.71 4.14L4.14 5.57L2 7.71L3.43 9.14L2 10.57L3.43 12L7 8.43L15.57 17L12 20.57L13.43 22L14.86 20.57L16.29 22L18.43 19.86L19.86 21.29L21.29 19.86L19.86 18.43L22 16.29L20.57 14.86Z"/></svg>
+        </div>
+        <div class="brand-text">
+          <h1>GymSense AI</h1>
+          <p>Motion Intelligence</p>
+        </div>
+      </div>
+
+      <div id="header-sensor-badge" class="sensor-badge off">
+        <span class="dot"></span>
+        <span id="header-sensor-badge-text">SENSOR OFF</span>
+      </div>
+    </header>
+
+    <!-- ============================================================
+         SCREEN: HOME & PREPARATION
+         ============================================================ -->
+    <main id="screen-home" class="screen-view active">
+      <div style="margin-bottom: 16px;">
+        <h2 class="section-title">Workout Readiness</h2>
+        <p class="section-subtitle">Calibrate motion sensors and start training</p>
+      </div>
+
+      <!-- Avatar Status Card -->
+      <div class="gym-card glow-pink">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 11px; text-transform: uppercase; color: var(--neon-cyan); letter-spacing: 1px;">Selected Profile</div>
+            <h3 id="home-selected-avatar-label" style="font-family: var(--font-heading); font-size: 18px; color: #fff; margin-top: 2px;">Female Avatar Selected</h3>
+            <p style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Consistent 3D Kinematic Model</p>
+          </div>
+          <button onclick="document.getElementById('avatar-selection-overlay').classList.remove('hidden');" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer;">
+            Switch Avatar
+          </button>
+        </div>
+      </div>
+
+      <!-- Sensor Setup & Calibration Card -->
+      <div class="gym-card">
+        <h3 style="font-family: var(--font-heading); font-size: 16px; margin-bottom: 10px; color: #fff;">PHONE MOTION SENSORS</h3>
+        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 14px;">
+          Connect real accelerometer and gyroscope motion hardware to enable live ML activity prediction.
+        </p>
+
+        <button id="btn-enable-sensors" class="btn-primary" style="margin-bottom: 10px;">
+          <svg style="width: 18px; height: 18px; fill: #fff;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          ENABLE PHONE SENSORS
+        </button>
+
+        <div id="sensor-connected-status" style="display: none; margin-bottom: 12px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--neon-green); margin-bottom: 4px;">
+            <span>✓</span> Accelerometer Connected (3-Axis X, Y, Z)
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--neon-green);">
+            <span>✓</span> Gyroscope Connected (Alpha, Beta, Gamma)
+          </div>
+        </div>
+
+        <button id="btn-calibrate" class="btn-secondary" disabled style="margin-bottom: 8px;">
+          <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14h2v2h-2zm0-10h2v8h-2z"/></svg>
+          CALIBRATE (3 SECONDS STILL)
+        </button>
+
+        <div id="calibration-done-badge" style="display: none; text-align: center; font-size: 12px; color: var(--neon-cyan); font-weight: 600; padding: 6px;">
+          ✓ Calibration Complete (Baseline Offset Zeroed)
+        </div>
+
+        <button id="btn-start-workout" class="btn-primary" disabled style="margin-top: 8px;">
+          ▶ START WORKOUT
+        </button>
+      </div>
+
+      <!-- Today's Activity Summary Box -->
+      <div class="gym-card">
+        <h3 style="font-family: var(--font-heading); font-size: 15px; margin-bottom: 12px; color: #fff;">TODAY'S ACTIVITY OVERVIEW</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
+          <div style="background: rgba(15,23,42,0.6); padding: 10px 6px; border-radius: var(--radius-sm);">
+            <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Active Time</div>
+            <div id="home-today-active" style="font-family: var(--font-heading); font-size: 18px; font-weight: 800; color: var(--neon-cyan);">00:00</div>
+          </div>
+          <div style="display: grid; background: rgba(15,23,42,0.6); padding: 10px 6px; border-radius: var(--radius-sm);">
+            <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Exercises</div>
+            <div id="home-today-exercises" style="font-family: var(--font-heading); font-size: 18px; font-weight: 800; color: #fff;">0</div>
+          </div>
+          <div style="display: grid; background: rgba(15,23,42,0.6); padding: 10px 6px; border-radius: var(--radius-sm);">
+            <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Total Reps</div>
+            <div id="home-today-reps" style="font-family: var(--font-heading); font-size: 18px; font-weight: 800; color: var(--primary-pink);">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action / PWA Install -->
+      <button id="pwa-install-btn" class="btn-secondary" style="display: none; margin-bottom: 12px;" onclick="triggerPWAInstall()">
+        📲 Install GymSense AI App (PWA)
+      </button>
+
+      <div style="text-align: center; padding: 10px 0; font-size: 11px; color: var(--text-muted);">
+        Competition Project: MACHINE SPECTRA 1.0 • September 10, 2026<br>
+        <strong>Ranjitha B K (USN: 1SB24AI041)</strong>
+      </div>
+    </main>
+
+    <!-- ============================================================
+         SCREEN: LIVE WORKOUT
+         ============================================================ -->
+    <main id="screen-workout" class="screen-view">
+      <!-- Live Workout Header Bar -->
+      <div class="workout-header-bar">
+        <div class="live-pill">
+          <span class="dot" style="background: var(--primary-pink); width: 6px; height: 6px; border-radius: 50%;"></span>
+          LIVE WORKOUT
+        </div>
+        <div id="live-workout-timer" class="workout-timer-display">00:00</div>
+      </div>
+
+      <!-- BIG ANIMATED AVATAR STAGE -->
+      <div class="avatar-stage-container">
+        <canvas id="main-avatar-canvas" class="avatar-stage-canvas"></canvas>
+      </div>
+
+      <!-- Detected Exercise Title Banner -->
+      <div class="exercise-name-banner">
+        <div id="detected-exercise-pill" class="exercise-detected-pill">RESTING</div>
+        <div id="detected-exercise-name" class="detected-exercise-title">REST</div>
+      </div>
+
+      <!-- Realtime Metric Quad Grid -->
+      <div class="metrics-quad-grid">
+        <div class="metric-box">
+          <div class="metric-label">Confidence</div>
+          <div id="metric-confidence-val" class="metric-value" style="color: var(--primary-pink);">98%</div>
+          <div class="metric-sub">Softmax Probability</div>
+        </div>
+        <div class="metric-box cyan">
+          <div class="metric-label">Reps</div>
+          <div id="metric-reps-val" class="metric-value" style="color: var(--neon-cyan);">0</div>
+          <div class="metric-sub">Peak Detection</div>
+        </div>
+        <div class="metric-box purple">
+          <div class="metric-label">Set</div>
+          <div id="metric-set-val" class="metric-value" style="color: var(--primary-purple);">1 / 3</div>
+          <div class="metric-sub">Auto Set Tracker</div>
+        </div>
+        <div class="metric-box green">
+          <div class="metric-label">Stability</div>
+          <div id="metric-stability-val" class="metric-value" style="color: var(--neon-green);">Excellent</div>
+          <div class="metric-sub">Smoothing Filter</div>
+        </div>
+      </div>
+
+      <!-- End Workout Action -->
+      <button id="btn-end-workout" class="btn-primary btn-danger" style="margin-bottom: 18px;">
+        ■ END WORKOUT
+      </button>
+
+      <!-- JUDGE DEMO SIMULATOR TOOLBAR (Desktop fallback test rig) -->
+      <div class="simulator-box">
+        <div class="simulator-title">
+          <span>⚡ LIVE MOTION TEST RIG (JUDGE DEMO)</span>
+          <span style="font-size: 10px; color: var(--text-muted);">Real-time ML trigger</span>
+        </div>
+        <div class="sim-btn-grid">
+          <button class="sim-btn active" data-act="REST">🧘 REST</button>
+          <button class="sim-btn" data-act="BICEP CURL">💪 BICEP CURL</button>
+          <button class="sim-btn" data-act="HAMMER CURL">🔨 HAMMER CURL</button>
+          <button class="sim-btn" data-act="SQUAT">🏋️ SQUAT</button>
+          <button class="sim-btn" data-act="LUNGE">🦵 LUNGE</button>
+          <button class="sim-btn" data-act="JUMPING JACK">⭐ JUMP JACK</button>
+          <button class="sim-btn" data-act="SHOULDER PRESS">🙌 SH. PRESS</button>
+          <button class="sim-btn" data-act="FRONT RAISE">⬆️ FRONT RAISE</button>
+          <button class="sim-btn" data-act="LATERAL RAISE">🦅 LAT. RAISE</button>
+          <button class="sim-btn" data-act="RUNNING">🏃 RUNNING</button>
+          <button class="sim-btn" data-act="WALKING">🚶 WALKING</button>
+          <button class="sim-btn" data-act="WORKOUT">🔥 WORKOUT</button>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           HOSPITAL VITAL-MONITOR STYLE SENSOR WAVEFORMS
+           ============================================================ -->
+      <div class="vital-monitor-panel">
+        <div class="vital-disclaimer-banner">
+          ⚠️ MOTION SENSORS — NOT ECG / VITAL SIGNS
+        </div>
+
+        <!-- Accelerometer Graph -->
+        <div style="margin-bottom: 14px;">
+          <div class="vital-graph-header">
+            <div class="vital-title">
+              <span class="tele-dot" style="background: var(--neon-cyan);"></span>
+              Accelerometer (m/s²)
+            </div>
+            <span class="sensor-badge" style="font-size: 9px; padding: 2px 6px;">● LIVE</span>
+          </div>
+
+          <div class="waveform-canvas-wrapper">
+            <canvas id="accel-waveform-canvas" class="waveform-canvas"></canvas>
+          </div>
+
+          <div class="waveform-telemetry-row">
+            <div class="telemetry-item" style="color: #00f2fe;"><span class="tele-dot" style="background: #00f2fe;"></span><span id="hud-accel-x">X: 0.00</span></div>
+            <div class="telemetry-item" style="color: #ff2e93;"><span class="tele-dot" style="background: #ff2e93;"></span><span id="hud-accel-y">Y: 0.00</span></div>
+            <div class="telemetry-item" style="color: #fbbf24;"><span class="tele-dot" style="background: #fbbf24;"></span><span id="hud-accel-z">Z: 9.81</span></div>
+            <div class="telemetry-item" style="color: #10b981;"><span class="tele-dot" style="background: #10b981;"></span><span id="hud-accel-mag">|A|: 9.81</span></div>
+          </div>
+        </div>
+
+        <!-- Gyroscope Graph -->
+        <div>
+          <div class="vital-graph-header">
+            <div class="vital-title">
+              <span class="tele-dot" style="background: var(--neon-purple);"></span>
+              Gyroscope (°/s)
+            </div>
+            <span class="sensor-badge" style="font-size: 9px; padding: 2px 6px;">● LIVE</span>
+          </div>
+
+          <div class="waveform-canvas-wrapper">
+            <canvas id="gyro-waveform-canvas" class="waveform-canvas"></canvas>
+          </div>
+
+          <div class="waveform-telemetry-row">
+            <div class="telemetry-item" style="color: #c084fc;"><span class="tele-dot" style="background: #c084fc;"></span><span id="hud-gyro-alpha">α: 0.0°</span></div>
+            <div class="telemetry-item" style="color: #fb923c;"><span class="tele-dot" style="background: #fb923c;"></span><span id="hud-gyro-beta">β: 0.0°</span></div>
+            <div class="telemetry-item" style="color: #38bdf8;"><span class="tele-dot" style="background: #38bdf8;"></span><span id="hud-gyro-gamma">γ: 0.0°</span></div>
+            <div class="telemetry-item" style="color: #34d399;"><span class="tele-dot" style="background: #34d399;"></span><span id="hud-gyro-mag">|G|: 0.0°/s</span></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ============================================================
+         SCREEN: ACTIVITY HISTORY
+         ============================================================ -->
+    <main id="screen-history" class="screen-view">
+      <div style="margin-bottom: 16px;">
+        <h2 class="section-title">Workout History</h2>
+        <p class="section-subtitle">Real recorded workout sessions and activity timelines</p>
+      </div>
+
+      <div id="history-sessions-list">
+        <!-- Rendered dynamically by history.js -->
+      </div>
+    </main>
+
+    <!-- ============================================================
+         SCREEN: ANALYTICS
+         ============================================================ -->
+    <main id="screen-analytics" class="screen-view">
+      <div style="margin-bottom: 16px;">
+        <h2 class="section-title">Performance Analytics</h2>
+        <p class="section-subtitle">Computed metrics from real sensor history</p>
+      </div>
+
+      <div class="gym-card">
+        <h3 style="font-family: var(--font-heading); font-size: 15px; margin-bottom: 12px; color: #fff;">LIFETIME STATS</h3>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+          <div style="background: rgba(15,23,42,0.6); padding: 12px; border-radius: var(--radius-sm);">
+            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Active Time</div>
+            <div id="analytics-active-time" style="font-family: var(--font-heading); font-size: 20px; font-weight: 800; color: var(--neon-cyan);">00:00</div>
+          </div>
+          <div style="background: rgba(15,23,42,0.6); padding: 12px; border-radius: var(--radius-sm);">
+            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Total Reps</div>
+            <div id="analytics-total-reps" style="font-family: var(--font-heading); font-size: 20px; font-weight: 800; color: var(--primary-pink);">0</div>
+          </div>
+          <div style="background: rgba(15,23,42,0.6); padding: 12px; border-radius: var(--radius-sm);">
+            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Total Sets</div>
+            <div id="analytics-total-sets" style="font-family: var(--font-heading); font-size: 20px; font-weight: 800; color: var(--neon-green);">0</div>
+          </div>
+          <div style="background: rgba(15,23,42,0.6); padding: 12px; border-radius: var(--radius-sm);">
+            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Top Exercise</div>
+            <div id="analytics-most-frequent" style="font-family: var(--font-heading); font-size: 14px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">None</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="gym-card">
+        <h3 style="font-family: var(--font-heading); font-size: 15px; margin-bottom: 12px; color: #fff;">EXERCISE TIME DISTRIBUTION</h3>
+        <div id="analytics-exercise-distribution">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </main>
+
+    <!-- ============================================================
+         SCREEN: ML MODEL INSPECTION (For Competition Judges)
+         ============================================================ -->
+    <main id="screen-model" class="screen-view">
+      <div style="margin-bottom: 16px;">
+        <h2 class="section-title">ML Model Architecture</h2>
+        <p class="section-subtitle">Real scikit-learn model evaluation & comparison</p>
+      </div>
+
+      <!-- Candidate Comparison Table -->
+      <div class="gym-card">
+        <h3 style="font-family: var(--font-heading); font-size: 15px; margin-bottom: 10px; color: #fff;">CLASSIFIER BENCHMARK COMPARISON</h3>
+        <div class="comparison-table-wrap">
+          <table class="benchmark-table">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Accuracy</th>
+                <th>Precision</th>
+                <th>Recall</th>
+                <th>F1</th>
+              </tr>
+            </thead>
+            <tbody id="benchmark-table-body">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Confusion Matrix Heatmap -->
+      <div class="gym-card">
+        <h3 style="font-family: var(--font-heading); font-size: 15px; margin-bottom: 4px; color: #fff;">CONFUSION MATRIX (TEST SPLIT)</h3>
+        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px;">Evaluation over 753 test windows across 11 classes</p>
+        <div class="matrix-container">
+          <div id="confusion-matrix-grid" class="matrix-grid">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Feature Importances -->
+      <div class="gym-card">
+        <h3 style="font-family: var(--font-heading); font-size: 15px; margin-bottom: 4px; color: #fff;">FEATURE IMPORTANCE (GINI CRITERION)</h3>
+        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 12px;">Top kinematic features extracted from 2.5s sensor windows</p>
+        <div id="feature-importance-list">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Dataset & Architecture Details -->
+      <div class="gym-card">
+        <h3 style="font-family: var(--font-heading); font-size: 15px; margin-bottom: 10px; color: #fff;">PIPELINE SPECIFICATIONS</h3>
+        <div id="model-stats-summary">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </main>
+
+    <!-- ============================================================
+         SCREEN: MORE & DEVELOPER DATA COLLECTOR
+         ============================================================ -->
+    <main id="screen-more" class="screen-view">
+      <div style="margin-bottom: 16px;">
+        <h2 class="section-title">Developer Studio</h2>
+        <p class="section-subtitle">Collect custom sensor datasets and inspect raw streams</p>
+      </div>
+
+      <div class="gym-card">
+        <h3 style="font-family: var(--font-heading); font-size: 15px; margin-bottom: 10px; color: #fff;">COLLECT TRAINING DATA</h3>
+        
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase;">Select Target Exercise</label>
+          <select id="collector-activity-select" style="width: 100%; padding: 10px; background: rgba(15,23,42,0.9); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); color: #fff; margin-top: 4px;">
+            <option value="REST">REST</option>
+            <option value="BICEP CURL">BICEP CURL</option>
+            <option value="HAMMER CURL">HAMMER CURL</option>
+            <option value="SQUAT">SQUAT</option>
+            <option value="LUNGE">LUNGE</option>
+            <option value="JUMPING JACK">JUMPING JACK</option>
+            <option value="SHOULDER PRESS">SHOULDER PRESS</option>
+            <option value="FRONT RAISE">FRONT RAISE</option>
+            <option value="LATERAL RAISE">LATERAL RAISE</option>
+            <option value="WALKING">WALKING</option>
+            <option value="RUNNING">RUNNING</option>
+          </select>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+          <button id="btn-collector-start" class="btn-primary" style="padding: 12px;">
+            ● START RECORDING
+          </button>
+          <button id="btn-collector-stop" class="btn-secondary" disabled style="padding: 12px;">
+            ■ STOP
+          </button>
+        </div>
+
+        <div style="font-size: 12px; color: var(--neon-cyan); margin-bottom: 10px;" id="collector-sample-count">
+          0 samples recorded
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button id="btn-collector-save" class="btn-secondary" disabled>
+            💾 SAVE TO BACKEND
+          </button>
+          <button id="btn-collector-export" class="btn-secondary" disabled>
+            📥 EXPORT CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Project Metadata Card -->
+      <div class="gym-card">
+        <h3 style="font-family: var(--font-heading); font-size: 15px; margin-bottom: 10px; color: #fff;">ABOUT GYMSENSE AI</h3>
+        <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.6;">
+          <p><strong>Student:</strong> Ranjitha B K</p>
+          <p><strong>USN:</strong> 1SB24AI041</p>
+          <p><strong>Branch:</strong> Artificial Intelligence & Machine Learning</p>
+          <p><strong>Event:</strong> MACHINE SPECTRA 1.0</p>
+          <p><strong>Date:</strong> September 10, 2026</p>
+          <p style="margin-top: 8px; color: var(--neon-cyan);">"Gym Workout Tracker: Classifying the type of exercise being done based on accelerometer/gyroscope data."</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- ============================================================
+         BOTTOM NAVIGATION BAR
+         ============================================================ -->
+    <nav class="bottom-nav-bar">
+      <button class="nav-item-btn active" data-screen="home">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span>HOME</span>
+      </button>
+
+      <button class="nav-item-btn" data-screen="workout">
+        <svg viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43L20.57 12L17 15.57L8.43 7L12 3.43L10.57 2L9.14 3.43L7.71 2L5.57 4.14L4.14 2.71L2.71 4.14L4.14 5.57L2 7.71L3.43 9.14L2 10.57L3.43 12L7 8.43L15.57 17L12 20.57L13.43 22L14.86 20.57L16.29 22L18.43 19.86L19.86 21.29L21.29 19.86L19.86 18.43L22 16.29L20.57 14.86Z"/></svg>
+        <span>WORKOUT</span>
+      </button>
+
+      <button class="nav-item-btn" data-screen="history">
+        <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+        <span>HISTORY</span>
+      </button>
+
+      <button class="nav-item-btn" data-screen="analytics">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+        <span>ANALYTICS</span>
+      </button>
+
+      <button class="nav-item-btn" data-screen="model">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+        <span>ML MODEL</span>
+      </button>
+
+      <button class="nav-item-btn" data-screen="more">
+        <svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+        <span>MORE</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ============================================================
+       CALIBRATION COUNTDOWN MODAL
+       ============================================================ -->
+  <div id="calibration-modal" class="modal-backdrop hidden">
+    <div class="modal-content-card">
+      <h3 style="font-family: var(--font-heading); font-size: 20px; color: #fff;">Calibrating Sensors</h3>
+      <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+        "Keep your phone still for 3 seconds."
+      </p>
+
+      <div id="calibration-countdown" class="countdown-number">3</div>
+
+      <div style="font-size: 11px; color: var(--neon-cyan);">
+        Sampling gravity orientation & sensor noise floor...
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       WORKOUT COMPLETE SUMMARY MODAL
+       ============================================================ -->
+  <div id="workout-summary-modal" class="modal-backdrop hidden">
+    <div class="modal-content-card" style="max-width: 440px;">
+      <div style="font-size: 36px; margin-bottom: 4px;">🏆</div>
+      <h2 style="font-family: var(--font-heading); font-size: 22px; color: #fff; margin-bottom: 2px;">WORKOUT COMPLETE</h2>
+      <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">Session successfully recorded and analyzed</p>
+
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; text-align: left;">
+        <div style="background: rgba(15,23,42,0.8); padding: 10px; border-radius: var(--radius-sm);">
+          <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Total Duration</div>
+          <div id="summary-total-duration" style="font-family: var(--font-heading); font-size: 18px; font-weight: 800; color: #fff;">00:00</div>
+        </div>
+        <div style="background: rgba(15,23,42,0.8); padding: 10px; border-radius: var(--radius-sm);">
+          <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Active Time</div>
+          <div id="summary-active-time" style="font-family: var(--font-heading); font-size: 18px; font-weight: 800; color: var(--neon-cyan);">00:00</div>
+        </div>
+        <div style="background: rgba(15,23,42,0.8); padding: 10px; border-radius: var(--radius-sm);">
+          <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Total Reps</div>
+          <div id="summary-total-reps" style="font-family: var(--font-heading); font-size: 18px; font-weight: 800; color: var(--primary-pink);">0</div>
+        </div>
+        <div style="background: rgba(15,23,42,0.8); padding: 10px; border-radius: var(--radius-sm);">
+          <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Total Sets</div>
+          <div id="summary-total-sets" style="font-family: var(--font-heading); font-size: 18px; font-weight: 800; color: var(--neon-green);">0</div>
+        </div>
+      </div>
+
+      <div style="text-align: left; margin-bottom: 14px;">
+        <div style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 6px;">Exercises Breakdown</div>
+        <div id="summary-exercises-list" style="max-height: 140px; overflow-y: auto;">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button id="btn-summary-view-history" class="btn-primary">
+          VIEW HISTORY
+        </button>
+        <button id="btn-summary-new-workout" class="btn-secondary">
+          START NEW WORKOUT
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script src="/static/js/avatarEngine.js"></script>
+  <script src="/static/js/sensors.js"></script>
+  <script src="/static/js/charts.js"></script>
+  <script src="/static/js/history.js"></script>
+  <script src="/static/js/workout.js"></script>
+  <script src="/static/js/pwa.js"></script>
+  <script src="/static/js/app.js"></script>
+
+</body>
+</html>

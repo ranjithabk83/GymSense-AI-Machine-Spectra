@@ -1,0 +1,690 @@
+{
+  "project": "GymSense AI - AI-Powered Workout Activity Recognition",
+  "student": {
+    "name": "Ranjitha B K",
+    "usn": "1SB24AI041",
+    "branch": "Artificial Intelligence and Machine Learning",
+    "event": "MACHINE SPECTRA 1.0",
+    "date": "September 10, 2026"
+  },
+  "selected_model": "Random Forest",
+  "algorithm": "RandomForestClassifier",
+  "trained_timestamp": "2026-09-05T09:01:25.694267",
+  "sampling_rate_hz": 20,
+  "window_size_samples": 50,
+  "window_duration_seconds": 2.5,
+  "total_training_windows": 3009,
+  "total_testing_windows": 753,
+  "total_features": 78,
+  "classes": [
+    "BICEP CURL",
+    "FRONT RAISE",
+    "HAMMER CURL",
+    "JUMPING JACK",
+    "LATERAL RAISE",
+    "LUNGE",
+    "REST",
+    "RUNNING",
+    "SHOULDER PRESS",
+    "SQUAT",
+    "WALKING"
+  ],
+  "feature_names": [
+    "accel_x_mean",
+    "accel_x_std",
+    "accel_x_var",
+    "accel_x_min",
+    "accel_x_max",
+    "accel_x_range",
+    "accel_x_rms",
+    "accel_x_energy",
+    "accel_x_iqr",
+    "accel_x_zc",
+    "accel_y_mean",
+    "accel_y_std",
+    "accel_y_var",
+    "accel_y_min",
+    "accel_y_max",
+    "accel_y_range",
+    "accel_y_rms",
+    "accel_y_energy",
+    "accel_y_iqr",
+    "accel_y_zc",
+    "accel_z_mean",
+    "accel_z_std",
+    "accel_z_var",
+    "accel_z_min",
+    "accel_z_max",
+    "accel_z_range",
+    "accel_z_rms",
+    "accel_z_energy",
+    "accel_z_iqr",
+    "accel_z_zc",
+    "accel_mag_mean",
+    "accel_mag_std",
+    "accel_mag_var",
+    "accel_mag_min",
+    "accel_mag_max",
+    "accel_mag_range",
+    "accel_mag_rms",
+    "accel_mag_energy",
+    "accel_mag_iqr",
+    "accel_mag_zc",
+    "accel_corr_xy",
+    "accel_corr_xz",
+    "accel_corr_yz",
+    "gyro_alpha_mean",
+    "gyro_alpha_std",
+    "gyro_alpha_var",
+    "gyro_alpha_min",
+    "gyro_alpha_max",
+    "gyro_alpha_range",
+    "gyro_alpha_rms",
+    "gyro_alpha_energy",
+    "gyro_beta_mean",
+    "gyro_beta_std",
+    "gyro_beta_var",
+    "gyro_beta_min",
+    "gyro_beta_max",
+    "gyro_beta_range",
+    "gyro_beta_rms",
+    "gyro_beta_energy",
+    "gyro_gamma_mean",
+    "gyro_gamma_std",
+    "gyro_gamma_var",
+    "gyro_gamma_min",
+    "gyro_gamma_max",
+    "gyro_gamma_range",
+    "gyro_gamma_rms",
+    "gyro_gamma_energy",
+    "gyro_mag_mean",
+    "gyro_mag_std",
+    "gyro_mag_var",
+    "gyro_mag_min",
+    "gyro_mag_max",
+    "gyro_mag_range",
+    "gyro_mag_rms",
+    "gyro_mag_energy",
+    "gyro_corr_ab",
+    "gyro_corr_ag",
+    "gyro_corr_bg"
+  ],
+  "evaluation_metrics": {
+    "accuracy": 100.0,
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1_score": 100.0,
+    "raw_accuracy": 1.0,
+    "raw_f1": 1.0
+  },
+  "model_comparison": {
+    "Random Forest": {
+      "accuracy": 100.0,
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0,
+      "raw_accuracy": 1.0,
+      "raw_f1": 1.0
+    },
+    "K-Nearest Neighbors (KNN)": {
+      "accuracy": 100.0,
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0,
+      "raw_accuracy": 1.0,
+      "raw_f1": 1.0
+    },
+    "Decision Tree": {
+      "accuracy": 99.73,
+      "precision": 99.73,
+      "recall": 99.73,
+      "f1_score": 99.73,
+      "raw_accuracy": 0.99734395750332,
+      "raw_f1": 0.99734395750332
+    },
+    "Support Vector Machine (SVM)": {
+      "accuracy": 100.0,
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0,
+      "raw_accuracy": 1.0,
+      "raw_f1": 1.0
+    }
+  },
+  "confusion_matrix": {
+    "matrix": [
+      [
+        68,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        68,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        68,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        69,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        69,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        68,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        69,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        69,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        69,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        68,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        68
+      ]
+    ],
+    "labels": [
+      "BICEP CURL",
+      "FRONT RAISE",
+      "HAMMER CURL",
+      "JUMPING JACK",
+      "LATERAL RAISE",
+      "LUNGE",
+      "REST",
+      "RUNNING",
+      "SHOULDER PRESS",
+      "SQUAT",
+      "WALKING"
+    ]
+  },
+  "top_feature_importances": [
+    {
+      "feature": "accel_corr_yz",
+      "importance": 3.893
+    },
+    {
+      "feature": "accel_corr_xy",
+      "importance": 3.759
+    },
+    {
+      "feature": "gyro_corr_ag",
+      "importance": 3.717
+    },
+    {
+      "feature": "accel_z_range",
+      "importance": 3.119
+    },
+    {
+      "feature": "gyro_corr_ab",
+      "importance": 2.799
+    },
+    {
+      "feature": "gyro_mag_var",
+      "importance": 2.79
+    },
+    {
+      "feature": "accel_y_range",
+      "importance": 2.584
+    },
+    {
+      "feature": "accel_y_max",
+      "importance": 2.287
+    },
+    {
+      "feature": "accel_z_std",
+      "importance": 2.151
+    },
+    {
+      "feature": "gyro_alpha_var",
+      "importance": 2.037
+    },
+    {
+      "feature": "gyro_beta_range",
+      "importance": 1.995
+    },
+    {
+      "feature": "accel_corr_xz",
+      "importance": 1.946
+    },
+    {
+      "feature": "gyro_gamma_energy",
+      "importance": 1.933
+    },
+    {
+      "feature": "gyro_mag_std",
+      "importance": 1.908
+    },
+    {
+      "feature": "accel_z_min",
+      "importance": 1.882
+    }
+  ],
+  "all_feature_importances": [
+    {
+      "feature": "accel_corr_yz",
+      "importance": 3.893
+    },
+    {
+      "feature": "accel_corr_xy",
+      "importance": 3.759
+    },
+    {
+      "feature": "gyro_corr_ag",
+      "importance": 3.717
+    },
+    {
+      "feature": "accel_z_range",
+      "importance": 3.119
+    },
+    {
+      "feature": "gyro_corr_ab",
+      "importance": 2.799
+    },
+    {
+      "feature": "gyro_mag_var",
+      "importance": 2.79
+    },
+    {
+      "feature": "accel_y_range",
+      "importance": 2.584
+    },
+    {
+      "feature": "accel_y_max",
+      "importance": 2.287
+    },
+    {
+      "feature": "accel_z_std",
+      "importance": 2.151
+    },
+    {
+      "feature": "gyro_alpha_var",
+      "importance": 2.037
+    },
+    {
+      "feature": "gyro_beta_range",
+      "importance": 1.995
+    },
+    {
+      "feature": "accel_corr_xz",
+      "importance": 1.946
+    },
+    {
+      "feature": "gyro_gamma_energy",
+      "importance": 1.933
+    },
+    {
+      "feature": "gyro_mag_std",
+      "importance": 1.908
+    },
+    {
+      "feature": "accel_z_min",
+      "importance": 1.882
+    },
+    {
+      "feature": "accel_y_var",
+      "importance": 1.836
+    },
+    {
+      "feature": "accel_z_var",
+      "importance": 1.824
+    },
+    {
+      "feature": "gyro_gamma_var",
+      "importance": 1.728
+    },
+    {
+      "feature": "gyro_mag_range",
+      "importance": 1.722
+    },
+    {
+      "feature": "gyro_corr_bg",
+      "importance": 1.615
+    },
+    {
+      "feature": "gyro_gamma_rms",
+      "importance": 1.613
+    },
+    {
+      "feature": "accel_x_iqr",
+      "importance": 1.525
+    },
+    {
+      "feature": "accel_z_max",
+      "importance": 1.509
+    },
+    {
+      "feature": "accel_y_rms",
+      "importance": 1.435
+    },
+    {
+      "feature": "gyro_gamma_std",
+      "importance": 1.422
+    },
+    {
+      "feature": "accel_mag_min",
+      "importance": 1.41
+    },
+    {
+      "feature": "accel_z_energy",
+      "importance": 1.378
+    },
+    {
+      "feature": "accel_z_iqr",
+      "importance": 1.34
+    },
+    {
+      "feature": "gyro_beta_max",
+      "importance": 1.31
+    },
+    {
+      "feature": "gyro_alpha_range",
+      "importance": 1.303
+    },
+    {
+      "feature": "gyro_gamma_max",
+      "importance": 1.302
+    },
+    {
+      "feature": "accel_x_range",
+      "importance": 1.27
+    },
+    {
+      "feature": "gyro_beta_rms",
+      "importance": 1.228
+    },
+    {
+      "feature": "accel_z_mean",
+      "importance": 1.224
+    },
+    {
+      "feature": "accel_y_std",
+      "importance": 1.217
+    },
+    {
+      "feature": "gyro_alpha_std",
+      "importance": 1.207
+    },
+    {
+      "feature": "accel_x_std",
+      "importance": 1.196
+    },
+    {
+      "feature": "accel_z_rms",
+      "importance": 1.194
+    },
+    {
+      "feature": "gyro_gamma_range",
+      "importance": 1.15
+    },
+    {
+      "feature": "gyro_alpha_energy",
+      "importance": 1.098
+    },
+    {
+      "feature": "accel_mag_range",
+      "importance": 1.085
+    },
+    {
+      "feature": "gyro_beta_std",
+      "importance": 1.029
+    },
+    {
+      "feature": "gyro_alpha_min",
+      "importance": 1.004
+    },
+    {
+      "feature": "gyro_beta_var",
+      "importance": 1.002
+    },
+    {
+      "feature": "gyro_beta_min",
+      "importance": 0.999
+    },
+    {
+      "feature": "gyro_beta_energy",
+      "importance": 0.999
+    },
+    {
+      "feature": "gyro_gamma_min",
+      "importance": 0.991
+    },
+    {
+      "feature": "accel_mag_zc",
+      "importance": 0.954
+    },
+    {
+      "feature": "accel_y_zc",
+      "importance": 0.93
+    },
+    {
+      "feature": "accel_mag_rms",
+      "importance": 0.894
+    },
+    {
+      "feature": "accel_x_var",
+      "importance": 0.888
+    },
+    {
+      "feature": "accel_x_rms",
+      "importance": 0.88
+    },
+    {
+      "feature": "accel_y_min",
+      "importance": 0.854
+    },
+    {
+      "feature": "accel_mag_max",
+      "importance": 0.831
+    },
+    {
+      "feature": "accel_x_energy",
+      "importance": 0.813
+    },
+    {
+      "feature": "accel_y_energy",
+      "importance": 0.81
+    },
+    {
+      "feature": "gyro_mag_max",
+      "importance": 0.806
+    },
+    {
+      "feature": "gyro_alpha_rms",
+      "importance": 0.795
+    },
+    {
+      "feature": "gyro_alpha_max",
+      "importance": 0.788
+    },
+    {
+      "feature": "accel_y_mean",
+      "importance": 0.751
+    },
+    {
+      "feature": "accel_mag_energy",
+      "importance": 0.724
+    },
+    {
+      "feature": "accel_mag_mean",
+      "importance": 0.717
+    },
+    {
+      "feature": "accel_x_min",
+      "importance": 0.705
+    },
+    {
+      "feature": "accel_mag_iqr",
+      "importance": 0.7
+    },
+    {
+      "feature": "gyro_mag_mean",
+      "importance": 0.684
+    },
+    {
+      "feature": "accel_mag_var",
+      "importance": 0.665
+    },
+    {
+      "feature": "gyro_mag_energy",
+      "importance": 0.656
+    },
+    {
+      "feature": "accel_z_zc",
+      "importance": 0.62
+    },
+    {
+      "feature": "gyro_mag_min",
+      "importance": 0.594
+    },
+    {
+      "feature": "accel_x_max",
+      "importance": 0.592
+    },
+    {
+      "feature": "accel_y_iqr",
+      "importance": 0.549
+    },
+    {
+      "feature": "accel_mag_std",
+      "importance": 0.495
+    },
+    {
+      "feature": "gyro_mag_rms",
+      "importance": 0.327
+    },
+    {
+      "feature": "gyro_beta_mean",
+      "importance": 0.011
+    },
+    {
+      "feature": "gyro_gamma_mean",
+      "importance": 0.003
+    },
+    {
+      "feature": "accel_x_zc",
+      "importance": 0.002
+    },
+    {
+      "feature": "accel_x_mean",
+      "importance": 0.0
+    },
+    {
+      "feature": "gyro_alpha_mean",
+      "importance": 0.0
+    }
+  ]
+}

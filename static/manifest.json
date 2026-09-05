@@ -1,0 +1,30 @@
+{
+  "name": "GymSense AI — AI Workout Activity Recognition",
+  "short_name": "GymSense",
+  "description": "Real-time AI-powered exercise recognition and workout tracking using smartphone accelerometer and gyroscope sensors.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070a14",
+  "theme_color": "#ff2e93",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/static/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["fitness", "health", "sports", "lifestyle"]
+}
