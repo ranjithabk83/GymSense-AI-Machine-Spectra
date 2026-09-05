@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import time
 from collections import Counter
 from pathlib import Path
@@ -21,10 +22,21 @@ from textwrap import dedent
 
 
 def html_markdown(body, *args, **kwargs):
-    if kwargs.get("unsafe_allow_html"):
-        body = dedent(str(body)).strip()
-    return st.markdown(body, *args, **kwargs)
+    """
+    Render custom HTML/SVG safely in Streamlit.
 
+    Important:
+    Streamlit Markdown can treat indented multiline HTML as a code block.
+    Converting every HTML/SVG block to one line prevents raw <div>/<svg>
+    source from appearing on desktop or mobile.
+    """
+    body = dedent(str(body)).strip()
+    body = re.sub(r"[\r\n\t]+", " ", body)
+    body = re.sub(r" {2,}", " ", body)
+    return st.markdown(body, unsafe_allow_html=True)
+
+
+APP_BUILD = "PREVIEW-RAW-HTML-FIX-3"
 
 # ============================================================
 # PAGE
@@ -2752,3 +2764,6 @@ st.caption(
     "GymSense AI • Ranjitha B K • "
     "1SB24AI041 • AIML"
 )
+
+
+st.caption(f"Build: {APP_BUILD}")
